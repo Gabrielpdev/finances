@@ -16,6 +16,21 @@ export default function HeaderDescription() {
       <div className="flex max-w-6xl w-full gap-11 mt-16">
         <Card title="Entradas" value={value.in} type="in" />
         <Card title="Saidas" value={value.out} type="out" />
+        <Card
+          title="Saldo"
+          value={(
+            Number(
+              value.in.replace("R$ ", "").replace(".", "").replace(",", ".")
+            ) +
+            Number(
+              value.out.replace("R$ ", "").replace(".", "").replace(",", ".")
+            )
+          ).toLocaleString("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+          })}
+          type="in"
+        />
       </div>
     );
 

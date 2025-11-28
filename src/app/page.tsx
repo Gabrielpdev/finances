@@ -10,8 +10,10 @@ import { Loading } from "@/components/loading";
 import { formatToDate } from "@/utils/formatToDate";
 import { LOCAL_STORAGE_KEY } from "@/constants/keys";
 import { CurrencyContext } from "@/providers/currency";
-
-const header = ["Estabelecimento", "Valor", "Categoria", "Data"];
+import { getColor } from "@/utils/getColor";
+import { formatTableValue } from "@/utils/formatTableValue";
+import { header } from "@/constants/tableHeader";
+import { groupByMonths } from "@/helpers/groupByMonths";
 
 export default function Home() {
   const [showedData, setShowedData] = useState<IShowedData>({});
@@ -53,6 +55,7 @@ export default function Home() {
   const removeCreditDatas = async (data: IData[]) => {
     try {
       const uniqueMap = new Map();
+
       data.forEach((obj) => {
         const date = formatToDate(obj);
 
@@ -70,14 +73,6 @@ export default function Home() {
 
       const uniqueArray = Array.from(uniqueMap.values());
 
-      console.log(new Date(Date.parse("Abril" + " 1, 2025")));
-      // const date = new Date();
-      // console.log(new Date(Date.parse("Abril" + " 1, 2025")));
-
-      // date.setMonth(new Date(Date.parse("Abril" + " 1, 2025")).getMonth());
-
-      // console.log(date.toLocaleString("pt-BR", { month: "long" }));
-
       setDateOptions(uniqueArray);
 
       const grouped = groupByMonths(data);
@@ -87,21 +82,6 @@ export default function Home() {
     } catch (error) {
       console.error("Error:", error);
     }
-  };
-
-  const groupByMonths = (data: IData[]) => {
-    return data.reduce((acc, obj) => {
-      if (!obj["Data"]) return acc;
-
-      const date = formatToDate(obj);
-
-      const monthKey = `${months[date.getMonth()]}-${date.getFullYear()}`;
-
-      acc[monthKey] = acc[monthKey] || [];
-      acc[monthKey].push(obj);
-
-      return acc;
-    }, {} as IShowedData);
   };
 
   const onSelectChange = (e: any) => {
@@ -146,37 +126,6 @@ export default function Home() {
     });
   };
 
-  const formatValue = (value: number | string, type: keyof IData) => {
-    if (!value) return value;
-
-    if (type === "Valor") {
-      return value.toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-      });
-    }
-
-    return value;
-  };
-
-  const getColor = (
-    value: string | number,
-    type: keyof IData,
-    banco: string
-  ) => {
-    if (type === "Valor" && typeof value === "number") {
-      // if (value < 0) {
-      // if (value > 0) return "text-green-600";
-      if (value < 0) return "text-red-600";
-      // }
-
-      // if (value < 0) return "text-green-500";
-
-      return "text-green-600";
-    }
-    return "text-blue-950";
-  };
-
   useEffect(() => {
     readJsonFile();
   }, []);
@@ -197,14 +146,14 @@ export default function Home() {
 
       <div className="sticky top-0 left-0 right-0 border max-sm:hidden py-3  bg-neutral-200">
         <div
-          className={`grid grid-cols-5 text-center max-sm:grid-cols-5 max-sm:text-xs`}
+          className={`grid grid-cols-6 text-center max-sm:grid-cols-6 max-sm:text-xs`}
         >
           {header.map((item) => (
             <span
               key={item}
               className={`flex ${
                 item === "Estabelecimento"
-                  ? "col-span-2"
+                  ? "col-span-3"
                   : "col-span-1 justify-center"
               } items-center border-r-2 max-sm:border text-zinc-400`}
             >
@@ -230,14 +179,14 @@ export default function Home() {
                 return (
                   <div
                     key={v4()}
-                    className="grid grid-cols-5 text-center bg-white p-5 rounded-md "
+                    className="grid grid-cols-6 text-center bg-white p-5 rounded-md "
                   >
                     {header.map((headerItem) => (
                       <div
                         key={v4()}
                         className={`flex items-center justify-between flex-col ${
                           headerItem === "Estabelecimento"
-                            ? "col-span-2"
+                            ? "col-span-3"
                             : "col-span-1"
                         }`}
                       >
@@ -248,11 +197,10 @@ export default function Home() {
                               : "justify-center"
                           } border-r-2 ${getColor(
                             item[headerItem as keyof IData],
-                            headerItem as keyof IData,
-                            item["Tipo"]
+                            headerItem as keyof IData
                           )}`}
                         >
-                          {formatValue(
+                          {formatTableValue(
                             item[headerItem as keyof IData],
                             headerItem as keyof IData
                           )}

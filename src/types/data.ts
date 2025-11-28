@@ -6,6 +6,7 @@ export interface IData {
   Categoria: string;
   Valor: string;
   Tipo: string;
+  Identificador: string;
 }
 export interface ICategory {
   icon: string;

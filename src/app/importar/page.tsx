@@ -1,22 +1,30 @@
 "use client";
-import { useState, useRef, useContext, useCallback, useEffect } from "react";
+import { useState, useRef, useContext, useEffect } from "react";
 
-import { ICategory, IData } from "@/types/data";
+import { ICategory, IData, IShowedData } from "@/types/data";
 
 import { UserContext } from "@/providers/firebase";
 import { LOCAL_STORAGE_KEY } from "@/constants/keys";
 import { useRouter } from "next/navigation";
+import { checkBankType } from "@/utils/checkBankType";
+import { formatXpCSV } from "@/helpers/formatBanksCSV/xpCSV";
+import { formatNubankCSV } from "@/helpers/formatBanksCSV/nubankCSV";
+import { formatMercadoPagoCSV } from "@/helpers/formatBanksCSV/mercadoPagoCSV";
+import { getColor } from "@/utils/getColor";
+import { formatTableValue } from "@/utils/formatTableValue";
+import { v4 } from "uuid";
+import { header } from "@/constants/tableHeader";
 
 export default function Import() {
   const { push } = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const { user } = useContext(UserContext);
+  // const { user } = useContext(UserContext);
 
-  const [file, setJson] = useState<any>(null);
+  const [json, setJson] = useState<IData[]>([]);
+  const [selectedToDelete, setSelectedToDelete] = useState<IData[]>([]);
 
-  const [loading, setLoading] = useState(true);
-  const [categories, setCategories] = useState<ICategory[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const handleFileChange = (e: any) => {
     e.preventDefault();
@@ -28,9 +36,9 @@ export default function Import() {
         reader.onload = function (e) {
           const content = e?.target?.result as string;
           const json = csvJSON(content) as IData[];
+          const filtered = filteredData(json);
 
-          setJson(json);
-          // setData(json);
+          setJson(filtered);
         };
         reader.readAsText(file);
       }
@@ -40,93 +48,36 @@ export default function Import() {
   const csvJSON = (csv?: string) => {
     if (!csv) return console.error("CSV is empty");
 
-    const isNu = csv.includes("Data,Valor,Identificador,Descrição");
-    const lines = csv.split(isNu ? "\n" : "\r\n");
+    const bankType = checkBankType(csv);
+    let formattedData: IData[] = [];
 
-    const result = [];
-
-    const headers = lines[0].split(isNu ? "," : ";");
-
-    const formattedHeaders = headers.map((item) => {
-      if (item === "Descrição") return "Estabelecimento";
-      return item;
-    });
-
-    for (var i = 1; i < lines.length; i++) {
-      var obj = {} as any;
-      var currentLine = lines[i].split(isNu ? "," : ";");
-
-      for (var j = 0; j < formattedHeaders.length; j++) {
-        if (!isNu) {
-          obj[
-            "Identificador"
-          ] = `${currentLine[0]}-${currentLine[1]}-${currentLine[2]}-${currentLine[3]}-${currentLine[4]}`;
-        }
-
-        formatValues({
-          json: obj,
-          type: formattedHeaders[j],
-          value: currentLine[j],
-          banco: isNu ? "Nubank" : "Xp",
-        });
-      }
-      obj["Tipo"] = isNu ? "Nubank" : "Xp";
-
-      result.push(obj);
+    if (bankType === "mercadoPago") {
+      formattedData = formatMercadoPagoCSV(csv);
     }
 
-    console.log(result);
+    if (bankType === "nubank") {
+      formattedData = formatNubankCSV(csv);
+    }
 
-    return result;
+    if (bankType === "xp") {
+      formattedData = formatXpCSV(csv);
+    }
+
+    return formattedData;
   };
 
-  const formatValues = ({
-    json,
-    type,
-    value,
-    banco,
-  }: {
-    json: Record<string, any>;
-    type: string;
-    value: string;
-    banco: string;
-  }) => {
-    if (type === "Estabelecimento" && value) {
-      const fined = categories.find((category) =>
-        category.list.some((item) => item === value)
-      );
+  const filteredData = (json: IData[]) => {
+    const filtered = json?.filter((item: any) => {
+      const local = item["Estabelecimento"];
 
-      json["Categoria"] = fined ? fined.name : "Outros";
+      const removed = selectedToDelete.some((selected) => {
+        return selected["Identificador"] === item["Identificador"];
+      });
 
-      if (value.includes("Transferência")) {
-        json[type] = value
-          .replace(/^((?:[^-]*-){1}[^-]*)-.*$/, "$1")
-          .replace(/^[^-]*recebida[^-]*-/, "PIX de") // Replace "recebida" with "PIX de"
-          .replace(/^[^-]*enviada[^-]*-/i, "PIX para") // Replace "enviada" with "PIX para"
-          .trim()
-          .toLocaleLowerCase();
+      return !!local && !removed;
+    });
 
-        return;
-      }
-
-      if (value.includes("Pagamento de boleto")) {
-        json[type] = value.replace(/-.*$/, "").trim();
-        return;
-      }
-    }
-
-    if (type === "Valor" && value) {
-      const valueNumber =
-        banco === "Nubank"
-          ? Number(value.replace("R$ ", ""))
-          : Number(
-              value.replace("R$ ", "").replace(".", "").replace(",", ".")
-            ) * -1;
-      json[type] = valueNumber;
-      return;
-    }
-
-    json[type] = value;
+    return filtered;
   };
 
   const handleSaveJSON = async () => {
@@ -149,29 +100,20 @@ export default function Import() {
       // if (!data) return;
 
       const dataString = localStorage.getItem(LOCAL_STORAGE_KEY);
-      const data = dataString ? JSON.parse(dataString) : [];
+      const savedData: IData[] = dataString ? JSON.parse(dataString) : [];
 
-      const filteredData = file?.filter((item: any) => {
-        const local = item["Estabelecimento"];
-
-        return (
-          !!local &&
-          !local.includes("RDB") &&
-          local !== "Pagamentos Validos Normais" &&
-          !data.some(
-            (obj: any) => obj["Identificador"] === item["Identificador"]
-          )
+      const removedDuplicates = json.filter((savedItem) => {
+        return !savedData.some(
+          (newItem) => newItem["Identificador"] === savedItem["Identificador"]
         );
       });
 
-      console.log(filteredData);
-
       localStorage.setItem(
         LOCAL_STORAGE_KEY,
-        JSON.stringify([...data, ...filteredData])
+        JSON.stringify([...savedData, ...removedDuplicates])
       );
 
-      setJson(null);
+      setJson([]);
       fileRef.current!.value = "";
       push("/");
     } catch (error) {
@@ -181,46 +123,18 @@ export default function Import() {
     }
   };
 
-  const handleDeleteJSON = async () => {
-    const confirm = window.confirm("Deseja mesmo deletar todos os dados?");
+  const handleSelectToDelete = (item: IData) => {
+    const isSelected = selectedToDelete.includes(item);
 
-    if (!confirm) return;
-
-    setLoading(true);
-    try {
-      // const token = await user?.getIdToken();
-      // if (!token) return;
-
-      // const response = await fetch(`/api/delete`, {
-      //   method: "DELETE",
-      //   headers: {
-      //     Authorization: `${token}`,
-      //   },
-      //   credentials: "include",
-      // });
-
-      // await response.json();
-      localStorage.removeItem(LOCAL_STORAGE_KEY);
-
-      alert("Dados deletados com sucesso");
-
-      setJson(null);
-      fileRef.current!.value = "";
-    } catch (error) {
-      console.error("Error:", error);
-    } finally {
-      setLoading(false);
+    if (isSelected) {
+      const filtered = selectedToDelete.filter(
+        (selectedItem) => selectedItem !== item
+      );
+      setSelectedToDelete(filtered);
+    } else {
+      setSelectedToDelete([...selectedToDelete, item]);
     }
   };
-
-  useEffect(() => {
-    const categoriesString = localStorage.getItem(
-      `${LOCAL_STORAGE_KEY}_categories`
-    );
-    const categories = categoriesString ? JSON.parse(categoriesString) : [];
-
-    setCategories(categories);
-  }, []);
 
   return (
     <div className="flex max-w-6xl w-full flex-col m-auto">
@@ -260,12 +174,76 @@ export default function Import() {
           Permitido apenas arquivos CSV
         </div>
         <button
-          className="w-36 rounded bg-green-600 text-white p-2 br-2 hover:bg-green-700 "
+          className={`w-36 rounded bg-green-600 text-white p-2 br-2 hover:bg-green-700 ${
+            loading ? "opacity-50 cursor-not-allowed" : ""
+          }`}
           onClick={handleSaveJSON}
         >
           Enviar
         </button>
       </div>
+
+      {json.length > 0 && (
+        <div className="flex gap-1 max-w-6xl w-full flex-col m-auto">
+          <div className="sticky top-0 left-0 right-0 border max-sm:hidden py-3  bg-neutral-200">
+            <div
+              className={`grid grid-cols-5 text-center max-sm:grid-cols-5 max-sm:text-xs`}
+            >
+              {header.map((item) => (
+                <span
+                  key={item}
+                  className={`flex ${
+                    item === "Estabelecimento"
+                      ? "col-span-2"
+                      : "col-span-1 justify-center"
+                  } items-center border-r-2 max-sm:border text-zinc-400`}
+                >
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {json?.map((item) => {
+            const isSelected = selectedToDelete.includes(item);
+
+            return (
+              <button
+                onClick={() => handleSelectToDelete(item)}
+                key={v4()}
+                className={`grid grid-cols-5  text-center bg-white p-5 rounded-md ${
+                  isSelected ? "bg-red-100" : ""
+                } `}
+              >
+                {header.map((headerItem) => (
+                  <div
+                    key={v4()}
+                    className={`flex items-center justify-between flex-col ${
+                      headerItem === "Estabelecimento"
+                        ? "col-span-2"
+                        : "col-span-1"
+                    }`}
+                  >
+                    <span
+                      className={`w-full flex items-center capitalize ${
+                        headerItem === "Estabelecimento" ? "" : "justify-center"
+                      } border-r-2 ${getColor(
+                        item[headerItem as keyof IData],
+                        headerItem as keyof IData
+                      )}`}
+                    >
+                      {formatTableValue(
+                        item[headerItem as keyof IData],
+                        headerItem as keyof IData
+                      )}
+                    </span>
+                  </div>
+                ))}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
