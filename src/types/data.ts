@@ -3,7 +3,10 @@ export interface IData {
   Estabelecimento: string;
   Parcela: string;
   Portador: string;
-  Categoria: string;
+  Categoria: {
+    name: string;
+    icon: string;
+  };
   Valor: string;
   Tipo: string;
   Identificador: string;

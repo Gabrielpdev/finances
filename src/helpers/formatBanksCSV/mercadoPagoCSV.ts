@@ -1,16 +1,8 @@
-import { LOCAL_STORAGE_KEY } from "@/constants/keys";
-import { ICategory } from "@/types/data";
-
-const categoriesString = localStorage.getItem(
-  `${LOCAL_STORAGE_KEY}_categories`
-);
-const categories = (
-  categoriesString ? JSON.parse(categoriesString) : []
-) as ICategory[];
+import { getCategory } from "../getCategory";
 
 export function formatMercadoPagoCSV(csv: string) {
   const lines = csv.split("\n");
-  const result = [];
+  const result: any[] = [];
   const headers = lines[3].split(";");
 
   const formattedHeaders = headers.map((item) => {
@@ -43,7 +35,27 @@ export function formatMercadoPagoCSV(csv: string) {
     }
   }
 
-  return result;
+  let totalRendimentos = 0;
+  let lastData = {};
+
+  const groupRendimentos = result.filter((item: any) => {
+    if (item["Estabelecimento"] !== "Rendimentos ") {
+      return true;
+    }
+
+    totalRendimentos += item["Valor"];
+    lastData = {
+      ...result[result.length - 2],
+      Estabelecimento: "Rendimentos Totais",
+      Valor: totalRendimentos,
+    };
+
+    return false;
+  });
+
+  const resultWithRendimentos = groupRendimentos.with(-1, lastData);
+
+  return resultWithRendimentos;
 }
 
 const formatValues = ({
@@ -56,22 +68,21 @@ const formatValues = ({
   value: string;
 }) => {
   if (type === "Estabelecimento" && value) {
-    const fined = categories.find((category) =>
-      category.list.some((item) => item === value)
-    );
+    let formattedValue = value;
 
-    json["Categoria"] = fined ? fined.name : "Outros";
-
-    if (value.includes("Transferência")) {
-      json[type] = value;
-
-      return;
+    if (value.includes("Transferência Pix")) {
+      formattedValue = value.replace("Transferência Pix", "PIX").trim();
     }
 
     if (value.includes("Pagamento de boleto")) {
-      json[type] = value.replace(/-.*$/, "").trim();
-      return;
+      formattedValue = value.replace(/-.*$/, "").trim();
     }
+
+    const category = getCategory(formattedValue);
+    json["Categoria"] = category;
+
+    json[type] = formattedValue;
+    return;
   }
 
   if (type === "Valor" && value) {

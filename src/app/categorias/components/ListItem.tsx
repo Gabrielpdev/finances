@@ -1,12 +1,10 @@
 "use client";
-import { useState, useEffect, useRef, RefObject } from "react";
-import * as Icons from "react-icons/pi";
+import { RefObject } from "react";
 
-import { LOCAL_STORAGE_KEY } from "@/constants/keys";
-import { Loading } from "@/components/loading";
-import { v4 } from "uuid";
 import { useRouter } from "next/navigation";
 import { ICategory } from "@/types/data";
+
+import PiIcons from "@/components/elements/icons";
 
 interface CategoryProps {
   isEditing: string;
@@ -25,9 +23,6 @@ export default function ListItem({
 }: CategoryProps) {
   const { push } = useRouter();
 
-  // const inputNameRef = useRef<HTMLInputElement>(null);
-  // const inputIconRef = useRef<HTMLInputElement>(null);
-
   const handleSelectCategory = (category: string) => {
     push(`/categorias/${category.toLocaleLowerCase()}`);
   };
@@ -40,12 +35,12 @@ export default function ListItem({
         <input
           ref={inputNameRef}
           defaultValue={category.name}
-          className={`w-full flex capitalize col-span-9 border-r-2 text-blue-950`}
+          className={`w-full flex capitalize col-span-8 border-r-2 text-blue-950`}
         />
         <input
           ref={inputIconRef}
           defaultValue={category.icon}
-          className={`w-full flex items-center capitalize justify-center border-r-2 text-blue-950`}
+          className={`w-full flex items-center col-span-2 capitalize justify-center border-r-2 text-blue-950 text-center`}
         />
       </div>
     );
@@ -54,20 +49,17 @@ export default function ListItem({
   return (
     <button
       onClick={() => handleSelectCategory(category.name)}
-      className={`grid grid-cols-10 text-center bg-white p-5 rounded-md w-full ${className}`}
+      className={`grid grid-cols-10 text-center bg-white p-5 rounded-md w-full  ${className}`}
     >
       <span
-        className={`w-full flex capitalize col-span-9 border-r-2 text-blue-950`}
+        className={`w-full flex items-center capitalize  col-span-9 border-r-2 text-blue-950 text-xl`}
       >
         {category.name}
       </span>
       <span
-        className={`w-full flex items-center capitalize justify-center border-r-2 text-blue-950`}
+        className={`w-full flex items-center capitalize justify-center border-r-2 text-blue-950 text-4xl`}
       >
-        {(() => {
-          const IconComponent = Icons[category.icon as keyof typeof Icons];
-          return IconComponent ? <IconComponent /> : null;
-        })()}
+        <PiIcons iconName={category.icon} />
       </span>
     </button>
   );

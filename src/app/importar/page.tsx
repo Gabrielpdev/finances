@@ -1,19 +1,17 @@
 "use client";
-import { useState, useRef, useContext, useEffect } from "react";
+import { useState, useRef } from "react";
 
-import { ICategory, IData, IShowedData } from "@/types/data";
+import { IData } from "@/types/data";
 
-import { UserContext } from "@/providers/firebase";
 import { LOCAL_STORAGE_KEY } from "@/constants/keys";
 import { useRouter } from "next/navigation";
 import { checkBankType } from "@/utils/checkBankType";
 import { formatXpCSV } from "@/helpers/formatBanksCSV/xpCSV";
 import { formatNubankCSV } from "@/helpers/formatBanksCSV/nubankCSV";
 import { formatMercadoPagoCSV } from "@/helpers/formatBanksCSV/mercadoPagoCSV";
-import { getColor } from "@/utils/getColor";
-import { formatTableValue } from "@/utils/formatTableValue";
 import { v4 } from "uuid";
 import { header } from "@/constants/tableHeader";
+import { TableValue } from "@/components/elements/tableValue";
 
 export default function Import() {
   const { push } = useRouter();
@@ -22,7 +20,7 @@ export default function Import() {
   // const { user } = useContext(UserContext);
 
   const [json, setJson] = useState<IData[]>([]);
-  const [selectedToDelete, setSelectedToDelete] = useState<IData[]>([]);
+  const [selectedToDelete, setSelectedToDelete] = useState<string[]>([]);
 
   const [loading, setLoading] = useState(false);
 
@@ -36,9 +34,8 @@ export default function Import() {
         reader.onload = function (e) {
           const content = e?.target?.result as string;
           const json = csvJSON(content) as IData[];
-          const filtered = filteredData(json);
 
-          setJson(filtered);
+          setJson(json);
         };
         reader.readAsText(file);
       }
@@ -70,9 +67,9 @@ export default function Import() {
     const filtered = json?.filter((item: any) => {
       const local = item["Estabelecimento"];
 
-      const removed = selectedToDelete.some((selected) => {
-        return selected["Identificador"] === item["Identificador"];
-      });
+      const removed = selectedToDelete.some(
+        (selected) => selected === item["Identificador"]
+      );
 
       return !!local && !removed;
     });
@@ -107,10 +104,11 @@ export default function Import() {
           (newItem) => newItem["Identificador"] === savedItem["Identificador"]
         );
       });
+      const filtered = filteredData(removedDuplicates);
 
       localStorage.setItem(
         LOCAL_STORAGE_KEY,
-        JSON.stringify([...savedData, ...removedDuplicates])
+        JSON.stringify([...savedData, ...filtered])
       );
 
       setJson([]);
@@ -123,7 +121,7 @@ export default function Import() {
     }
   };
 
-  const handleSelectToDelete = (item: IData) => {
+  const handleSelectToDelete = (item: string) => {
     const isSelected = selectedToDelete.includes(item);
 
     if (isSelected) {
@@ -205,14 +203,14 @@ export default function Import() {
           </div>
 
           {json?.map((item) => {
-            const isSelected = selectedToDelete.includes(item);
+            const isSelected = selectedToDelete.includes(item.Identificador);
 
             return (
               <button
-                onClick={() => handleSelectToDelete(item)}
+                onClick={() => handleSelectToDelete(item.Identificador)}
                 key={v4()}
                 className={`grid grid-cols-5  text-center bg-white p-5 rounded-md ${
-                  isSelected ? "bg-red-100" : ""
+                  isSelected ? "bg-red-200" : ""
                 } `}
               >
                 {header.map((headerItem) => (
@@ -224,19 +222,7 @@ export default function Import() {
                         : "col-span-1"
                     }`}
                   >
-                    <span
-                      className={`w-full flex items-center capitalize ${
-                        headerItem === "Estabelecimento" ? "" : "justify-center"
-                      } border-r-2 ${getColor(
-                        item[headerItem as keyof IData],
-                        headerItem as keyof IData
-                      )}`}
-                    >
-                      {formatTableValue(
-                        item[headerItem as keyof IData],
-                        headerItem as keyof IData
-                      )}
-                    </span>
+                    <TableValue item={item} type={headerItem as keyof IData} />
                   </div>
                 ))}
               </button>

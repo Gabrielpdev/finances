@@ -8,7 +8,7 @@ interface CardProp {
 
 export default function Card({ title, value, type }: CardProp) {
   return (
-    <div className="bg-white h-36 max-w-sm w-full flex flex-col p-5 gap-4 ">
+    <div className="bg-white h-36 max-w-sm w-full flex flex-col p-5 gap-4 rounded">
       <div className="max-w-6xl w-full flex items-start justify-between">
         <span className="text-blue-950">{title}</span>
 

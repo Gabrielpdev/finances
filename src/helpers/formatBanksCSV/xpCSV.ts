@@ -1,5 +1,6 @@
 import { LOCAL_STORAGE_KEY } from "@/constants/keys";
 import { ICategory } from "@/types/data";
+import { getCategory } from "../getCategory";
 
 export function formatXpCSV(csv: string) {
   const lines = csv.split("\r\n");
@@ -31,7 +32,51 @@ export function formatXpCSV(csv: string) {
 
     result.push(obj);
   }
-  return result;
+
+  // Analyze which month has the highest data
+  const monthlyStats = result.reduce((acc, item) => {
+    if (!item.Data || !item.Valor) return acc;
+
+    const monthKey = item.Data.substring(3, 5); // MM format
+
+    if (!acc[monthKey]) {
+      acc[monthKey] = 0;
+    }
+
+    acc[monthKey] += 1;
+
+    return acc;
+  }, {} as Record<string, number>);
+
+  // Find month with highest total value
+  let highestMonth = "";
+  let highestValue = 0;
+
+  Object.entries(monthlyStats).forEach((data) => {
+    const [month, total] = data as [string, number];
+
+    if (total > highestValue) {
+      highestValue = total;
+      highestMonth = month;
+    }
+  });
+
+  const formattedResult = result
+    .filter((item) => item.Estabelecimento)
+    .map((item) => {
+      if (item.Parcela !== "-") {
+        const [day, _month, year] = item.Data.split("/");
+
+        return {
+          ...item,
+          Data: `${day}/${highestMonth}/${year}`,
+        };
+      }
+
+      return item;
+    });
+
+  return formattedResult;
 }
 
 const formatValues = ({
@@ -43,29 +88,16 @@ const formatValues = ({
   type: string;
   value: string;
 }) => {
-  const categoriesString = localStorage.getItem(
-    `${LOCAL_STORAGE_KEY}_categories`
-  );
-  const categories = (
-    categoriesString ? JSON.parse(categoriesString) : []
-  ) as ICategory[];
-
   if (type === "Estabelecimento" && value) {
-    const fined = categories.find((category) =>
-      category.list.some((item) => item === value)
-    );
-
-    json["Categoria"] = fined ? fined.name : "Outros";
-
-    console.log(json["Parcela"]);
-    console.log(json);
-
-    json["Estabelecimento"] = value + json["Parcela"];
-    if (json["Parcela"] !== "-") {
-      // console.log({ json, value });
-
+    if (value === "Pagamentos Validos Normais") {
       return;
     }
+
+    const category = getCategory(value);
+
+    json["Categoria"] = category;
+
+    json["Estabelecimento"] = value;
   }
 
   if (type === "Valor" && value) {
