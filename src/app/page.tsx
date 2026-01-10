@@ -181,55 +181,61 @@ export default function Home() {
   }, [formatTotalValue]);
 
   return (
-    <div className="flex max-w-6xl w-full flex-col  mt-24 m-auto">
-      <div className="flex items-center gap-5 p-2 max-md:order-1">
-        <label htmlFor="data">Data:</label>
-        <select
-          className="text-black"
-          id="data"
-          onChange={(e) => setSelectedFilterDate(e.target.value)}
-        >
-          <option className="text-black">Todos</option>
-          {dateOptions?.map((item: any) => (
-            <option className="text-black" key={item}>
-              {item}
-            </option>
-          ))}
-        </select>
+    <div className="flex max-w-6xl w-full flex-col mt-24 m-auto">
+      <div className="flex items-center gap-5 p-2 max-sm:flex-wrap">
+        <div className="flex gap-1">
+          <label htmlFor="data">Data:</label>
+          <select
+            className="text-black"
+            id="data"
+            onChange={(e) => setSelectedFilterDate(e.target.value)}
+          >
+            <option className="text-black">Todos</option>
+            {dateOptions?.map((item: any) => (
+              <option className="text-black" key={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+        </div>
 
-        <label htmlFor="tipo">Tipo:</label>
-        <select
-          className="text-black"
-          id="tipo"
-          onChange={(e) => setSelectedFilterType(e.target.value)}
-        >
-          <option className="text-black">Todos</option>
-          {typesOptions?.map((item: any) => (
-            <option className="text-black" key={item}>
-              {item}
-            </option>
-          ))}
-        </select>
+        <div className="flex gap-1">
+          <label htmlFor="tipo">Tipo:</label>
+          <select
+            className="text-black"
+            id="tipo"
+            onChange={(e) => setSelectedFilterType(e.target.value)}
+          >
+            <option className="text-black">Todos</option>
+            {typesOptions?.map((item: any) => (
+              <option className="text-black" key={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+        </div>
 
-        <label htmlFor="categoria">Categoria:</label>
-        <select
-          className="text-black"
-          id="categoria"
-          onChange={(e) => setSelectedFilterCategory(e.target.value)}
-        >
-          <option className="text-black">Todos</option>
-          <option className="text-black">Outros</option>
-          {categoryOptions?.map((item: any) => (
-            <option className="text-black" key={item.name}>
-              {item.name}
-            </option>
-          ))}
-        </select>
+        <div className="flex gap-1">
+          <label htmlFor="categoria">Categoria:</label>
+          <select
+            className="text-black"
+            id="categoria"
+            onChange={(e) => setSelectedFilterCategory(e.target.value)}
+          >
+            <option className="text-black">Todos</option>
+            <option className="text-black">Outros</option>
+            {categoryOptions?.map((item: any) => (
+              <option className="text-black" key={item.name}>
+                {item.name}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
-      <div className="sticky top-0 left-0 right-0 border max-sm:hidden py-3  bg-neutral-200">
+      <div className="border py-3 bg-neutral-200 max-sm:hidden">
         <div
-          className={`grid grid-cols-[repeat(40,_minmax(0,_1fr))] text-center max-sm:grid-cols-6 max-sm:text-xs`}
+          className={`grid grid-cols-[repeat(40,_minmax(0,_1fr))] text-center`}
         >
           {header.map((item) => (
             <span
@@ -258,8 +264,8 @@ export default function Home() {
           )
           ?.map(([key, month]) => {
             return (
-              <div key={key} className="gap-1 flex flex-col">
-                <div className="flex items-center justify-center text-zinc-400 py-4">
+              <div key={key} className="gap-1 flex flex-col relative">
+                <div className="flex w-full items-center justify-center text-zinc-400 py-4 sticky top-0">
                   <h2 className="text-base text-center">{key}</h2>
                 </div>
 
@@ -281,7 +287,7 @@ export default function Home() {
                         selectedItemToExclude.includes(item.Identificador)
                           ? "opacity-60"
                           : ""
-                      }`}
+                      } max-sm:flex max-sm:flex-wrap max-sm:justify-center`}
                     >
                       {header.map((headerItem) => (
                         <div
@@ -302,7 +308,7 @@ export default function Home() {
                         onClick={() =>
                           onSelectItemToExclude(item.Identificador)
                         }
-                        className={`flex items-center justify-center flex-col col-span-1`}
+                        className={`flex items-center justify-center flex-col col-span-1 max-sm:px-2`}
                       >
                         <PiXCircleLight />
                       </button>

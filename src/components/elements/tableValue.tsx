@@ -21,13 +21,13 @@ export const TableValue = ({ item, type }: TableValueProps) => {
   const className = `w-full flex gap-1 items-center capitalize justify-center border-r-2 ${getColor(
     item,
     type
-  )}`;
+  )} max-sm:px-2`;
   const value = item[type as keyof IData];
 
   if (!value) return;
 
   if (type === "Estabelecimento") {
-    const establishmentClassName = `w-full flex items-center capitalize border-r-2 text-blue-950`;
+    const establishmentClassName = `w-full flex items-center capitalize border-r-2 text-blue-950 max-sm:px-2`;
 
     if (item["Parcela"]) {
       const parcelaFormatted = `${value} ${

@@ -6,7 +6,7 @@ export default function Header() {
   return (
     <div className="bg-lime-900 h-48 w-full flex  justify-center pt-8">
       <div className="max-w-6xl w-full flex flex-col items-start justify-between ">
-        <div className="max-w-6xl w-full flex items-start justify-between">
+        <div className="max-w-6xl w-full flex items-start justify-between max-sm:flex-col max-sm:gap-9 max-sm:items-center">
           <Link href="/" className="flex">
             <Image src="/logo.svg" alt="logo" width={175} height={25} />
           </Link>

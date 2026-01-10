@@ -37,7 +37,7 @@ export default function HeaderDescription() {
 
   if (path === "/")
     return (
-      <div className="flex max-w-6xl w-full gap-11 mt-16">
+      <div className="flex max-w-6xl w-full gap-11 mt-16 overflow-x-auto min-h-max p-3 max-sm:mt-2 max-sm:gap-4">
         <Card title="Entradas" value={value.in} type="in" />
         <Card title="Saidas" value={value.out} type="out" />
         <Card

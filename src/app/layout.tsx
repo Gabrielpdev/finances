@@ -23,7 +23,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <CurrencyProvider>
-          <div className="bg-neutral-200 min-h-screen pb-4">
+          <div className="bg-neutral-200 min-h-screen pb-4 overflow-hidden">
             <ToastContainer />
             <Header />
 
