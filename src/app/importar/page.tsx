@@ -3,15 +3,15 @@ import { useState, useRef } from "react";
 
 import { IData } from "@/types/data";
 
-import { LOCAL_STORAGE_KEY } from "@/constants/keys";
 import { useRouter } from "next/navigation";
 import { checkBankType } from "@/utils/checkBankType";
 import { formatXpCSV } from "@/helpers/formatBanksCSV/xpCSV";
 import { formatNubankCSV } from "@/helpers/formatBanksCSV/nubankCSV";
 import { formatMercadoPagoCSV } from "@/helpers/formatBanksCSV/mercadoPagoCSV";
-import { v4 } from "uuid";
-import { header } from "@/constants/tableHeader";
-import { TableValue } from "@/components/elements/tableValue";
+import { DataTable } from "@/components/modules/dataTable";
+import { HeaderTable } from "@/components/modules/headerTable";
+import { createData } from "../actions/data/create";
+import { listDatas } from "../actions/data/list";
 
 export default function Import() {
   const { push } = useRouter();
@@ -68,7 +68,7 @@ export default function Import() {
       const local = item["Estabelecimento"];
 
       const removed = selectedToDelete.some(
-        (selected) => selected === item["Identificador"]
+        (selected) => selected === item["Identificador"],
       );
 
       return !!local && !removed;
@@ -80,57 +80,26 @@ export default function Import() {
   const handleSaveJSON = async () => {
     setLoading(true);
     try {
-      // const token = await user?.getIdToken();
-      // if (!token) return;
-
-      // const response = await fetch(`/api/save`, {
-      //   method: "POST",
-      //   body: JSON.stringify(file),
-      //   headers: {
-      //     Authorization: `${token}`,
-      //   },
-      //   credentials: "include",
-      // });
-
-      // const { data } = await response.json();
-
-      // if (!data) return;
-
-      const dataString = localStorage.getItem(LOCAL_STORAGE_KEY);
-      const savedData: IData[] = dataString ? JSON.parse(dataString) : [];
+      const savedData = await listDatas();
 
       const removedDuplicates = json.filter((savedItem) => {
         return !savedData.some(
-          (newItem) => newItem["Identificador"] === savedItem["Identificador"]
+          (newItem) => newItem["Identificador"] === savedItem["Identificador"],
         );
       });
       const filtered = filteredData(removedDuplicates);
 
-      localStorage.setItem(
-        LOCAL_STORAGE_KEY,
-        JSON.stringify([...savedData, ...filtered])
-      );
+      if (filtered.length > 0) {
+        await createData(filtered);
+      }
 
       setJson([]);
       fileRef.current!.value = "";
-      push("/");
+      push("/home");
     } catch (error) {
       console.error("Error:", error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleSelectToDelete = (item: string) => {
-    const isSelected = selectedToDelete.includes(item);
-
-    if (isSelected) {
-      const filtered = selectedToDelete.filter(
-        (selectedItem) => selectedItem !== item
-      );
-      setSelectedToDelete(filtered);
-    } else {
-      setSelectedToDelete([...selectedToDelete, item]);
     }
   };
 
@@ -183,51 +152,16 @@ export default function Import() {
 
       {json.length > 0 && (
         <div className="flex gap-1 max-w-6xl w-full flex-col m-auto">
-          <div className="sticky top-0 left-0 right-0 border max-sm:hidden py-3  bg-neutral-200">
-            <div
-              className={`grid grid-cols-5 text-center max-sm:grid-cols-5 max-sm:text-xs`}
-            >
-              {header.map((item) => (
-                <span
-                  key={item}
-                  className={`flex ${
-                    item === "Estabelecimento"
-                      ? "col-span-2"
-                      : "col-span-1 justify-center"
-                  } items-center border-r-2 max-sm:border text-zinc-400`}
-                >
-                  {item}
-                </span>
-              ))}
-            </div>
-          </div>
+          <HeaderTable />
 
-          {json?.map((item) => {
-            const isSelected = selectedToDelete.includes(item.Identificador);
-
-            return (
-              <button
-                onClick={() => handleSelectToDelete(item.Identificador)}
-                key={v4()}
-                className={`grid grid-cols-5  text-center bg-white p-5 rounded-md ${
-                  isSelected ? "bg-red-200" : ""
-                } `}
-              >
-                {header.map((headerItem) => (
-                  <div
-                    key={v4()}
-                    className={`flex items-center justify-between flex-col ${
-                      headerItem === "Estabelecimento"
-                        ? "col-span-2"
-                        : "col-span-1"
-                    }`}
-                  >
-                    <TableValue item={item} type={headerItem as keyof IData} />
-                  </div>
-                ))}
-              </button>
-            );
-          })}
+          {json?.map((item) => (
+            <DataTable
+              item={item}
+              selectedItemToExclude={selectedToDelete}
+              setSelectedItemToExclude={setSelectedToDelete}
+              key={item.Identificador}
+            />
+          ))}
         </div>
       )}
     </div>

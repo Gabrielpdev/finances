@@ -4,10 +4,10 @@ import Card from "../elements/cards";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { CurrencyContext } from "@/providers/currency";
 import { PiFloppyDisk } from "react-icons/pi";
-import { LOCAL_STORAGE_KEY } from "@/constants/keys";
-import { getCategory } from "@/helpers/getCategory";
-import { IData } from "@/types/data";
 import { toast } from "react-toastify";
+import { createCategories } from "@/app/actions/categories/create";
+import { LOCAL_STORAGE_KEY } from "@/constants/keys";
+import { CategoriesContext } from "@/providers/categories";
 
 export default function HeaderDescription() {
   const path = usePathname();
@@ -15,27 +15,17 @@ export default function HeaderDescription() {
   const { back, push } = useRouter();
 
   const { value } = useContext(CurrencyContext);
+  const { categories } = useContext(CategoriesContext);
 
-  function handleSaveCategory() {
-    const dataString = localStorage.getItem(LOCAL_STORAGE_KEY);
-    const data = dataString ? (JSON.parse(dataString) as IData[]) : [];
-
-    const newData = data.map((item) => {
-      const value = item["Estabelecimento"];
-      const category = getCategory(value);
-
-      return {
-        ...item,
-        Categoria: category,
-      };
-    });
-
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newData));
+  async function handleSaveCategory() {
+    for (const category of categories) {
+      await createCategories(category);
+    }
     toast.success("Categorias salvas com sucesso!");
-    push("/");
+    push("/home");
   }
 
-  if (path === "/")
+  if (path === "/home")
     return (
       <div className="flex max-w-6xl w-full gap-11 mt-16 overflow-x-auto min-h-max p-3 max-sm:mt-2 max-sm:gap-4">
         <Card title="Entradas" value={value.in} type="in" />
@@ -44,10 +34,10 @@ export default function HeaderDescription() {
           title="Saldo"
           value={(
             Number(
-              value.in.replace("R$ ", "").replace(".", "").replace(",", ".")
+              value.in.replace("R$ ", "").replace(".", "").replace(",", "."),
             ) +
             Number(
-              value.out.replace("R$ ", "").replace(".", "").replace(",", ".")
+              value.out.replace("R$ ", "").replace(".", "").replace(",", "."),
             )
           ).toLocaleString("pt-BR", {
             style: "currency",
@@ -60,11 +50,14 @@ export default function HeaderDescription() {
 
   if (path === "/categorias")
     return (
-      <h2 className="flex items-center w-full justify-center gap-2 text-4xl mb-5 text-white font-extrabold capitalize">
-        <button onClick={back}>{`<`}</button>
-        {path.replace("/", "")}
+      <h2 className="flex items-center w-full justify-between gap-2 text-4xl mb-5 text-white font-extrabold capitalize max-sm:text-2xl max-sm:mb-2">
+        <div className="flex items-center gap-2">
+          <button onClick={back}>{`<`}</button>
+          {path.replace("/", "")}
+        </div>
+
         <button
-          className="flex items-center gap-2 font-normal text-2xl ml-auto"
+          className="flex items-center gap-1 font-normal text-2xl "
           onClick={handleSaveCategory}
         >
           Salvar
@@ -75,7 +68,7 @@ export default function HeaderDescription() {
 
   if (path.includes(params.categoryName as string))
     return (
-      <h2 className="flex items-center justify-center gap-2 text-4xl mb-5 text-white font-extrabold capitalize">
+      <h2 className="flex items-center justify-center gap-2 text-4xl mb-5 text-white font-extrabold capitalize max-sm:text-2xl">
         <button onClick={back}>{`<`}</button>
         {params.categoryName}
       </h2>

@@ -29,7 +29,10 @@ export interface IUpdateData {
 }
 
 export interface IUserContext {
+  isUserAllowed: boolean;
   user: any;
+  login: () => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 export interface ICurrencyContext {
@@ -38,4 +41,9 @@ export interface ICurrencyContext {
     out: string;
   };
   setValue: (value: { in: string; out: string }) => void;
+}
+
+export interface ICategoriesContext {
+  categories: ICategory[];
+  setCategories: (categories: ICategory[]) => void;
 }

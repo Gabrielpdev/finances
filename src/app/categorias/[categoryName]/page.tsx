@@ -1,52 +1,36 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
 
-import { LOCAL_STORAGE_KEY } from "@/constants/keys";
 import { Loading } from "@/components/loading";
 import { useParams } from "next/navigation";
 import { ICategory } from "@/types/data";
 import { PiPlusCircleDuotone, PiTrashSimpleDuotone } from "react-icons/pi";
+import { CategoriesContext } from "@/providers/categories";
+import { toast } from "react-toastify";
+import { updateCategories } from "@/app/actions/categories/update";
 
 export default function CategoryName() {
   const params = useParams();
 
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const [categories, setCategories] = useState<ICategory[]>([]);
-  const [categoriesList, setCategoriesList] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<ICategory | null>(
+    null,
+  );
 
   const [loading, setLoading] = useState(true);
   const [addField, setAddField] = useState(false);
 
+  const { setCategories, categories } = useContext(CategoriesContext);
+
   const readJsonFile = async () => {
     setLoading(true);
     try {
-      // const token = await user?.getIdToken();
-      // if (!token) return;
-
-      // const response = await fetch(`/api/list`, {
-      //   headers: {
-      //     Authorization: `${token}`,
-      //   },
-      //   credentials: "include",
-      // });
-
-      // const { data } = await response.json();
-
-      // if (!data) return;
-      const categoriesString = localStorage.getItem(
-        `${LOCAL_STORAGE_KEY}_categories`
-      );
-      const categories: ICategory[] = categoriesString
-        ? JSON.parse(categoriesString)
-        : [];
-
       const filtered = categories.find(
-        (category) => category.name.toLocaleLowerCase() === params.categoryName
+        (category) => category.name.toLocaleLowerCase() === params.categoryName,
       );
 
-      setCategories(categories);
-      setCategoriesList(filtered?.list || []);
+      setSelectedCategory(filtered || null);
     } catch (error) {
       console.error("Error:", error);
     } finally {
@@ -54,49 +38,86 @@ export default function CategoryName() {
     }
   };
 
-  const handleSaveNewValueOnList = () => {
-    if (inputRef?.current?.value) {
+  const handleSaveNewValueOnList = async () => {
+    if (inputRef?.current?.value && selectedCategory) {
+      const value = inputRef.current.value;
+
+      await updateCategories({
+        id: selectedCategory.id,
+        data: {
+          ...selectedCategory,
+          list: [...selectedCategory.list, value],
+        },
+      });
+
       const newCategories = categories.map((category) => {
-        if (category.name.toLocaleLowerCase() === params.categoryName) {
+        if (
+          category.name.toLocaleLowerCase() ===
+          selectedCategory?.name.toLocaleLowerCase()
+        ) {
+          if (category.list.includes(value)) {
+            toast.error("Valor já existe na lista");
+            return category;
+          }
+
           return {
             ...category,
-            list: [...category.list, inputRef?.current?.value],
+            list: [...category.list, value],
           };
         }
 
         return category;
       });
 
-      localStorage.setItem(
-        `${LOCAL_STORAGE_KEY}_categories`,
-        JSON.stringify(newCategories)
-      );
-
-      setCategoriesList([...categoriesList, inputRef?.current?.value]);
+      setCategories(newCategories);
+      setSelectedCategory({
+        ...selectedCategory!,
+        list: [...selectedCategory.list, value],
+      });
       setAddField(false);
     }
   };
 
-  const handleDeleteValueOnList = (name: string) => {
-    const newCategories = categories.map((category) => {
-      if (category.name.toLocaleLowerCase() === params.categoryName) {
-        return {
-          ...category,
-          list: category.list.filter((item) => item !== name),
-        };
-      }
+  const handleDeleteValueOnList = async (name: string) => {
+    if (!confirm("Tem certeza que deseja deletar este item?")) return;
 
-      return category;
-    });
+    if (inputRef?.current?.value && selectedCategory) {
+      const value = inputRef.current.value;
 
-    localStorage.setItem(
-      `${LOCAL_STORAGE_KEY}_categories`,
-      JSON.stringify(newCategories)
-    );
+      await updateCategories({
+        id: selectedCategory.id,
+        data: {
+          ...selectedCategory,
+          list: selectedCategory.list.filter((item) => item !== name),
+        },
+      });
 
-    setCategories(newCategories);
-    setCategoriesList(categoriesList.filter((item) => item !== name));
-    setAddField(false);
+      const newCategories = categories.map((category) => {
+        if (
+          category.name.toLocaleLowerCase() ===
+          selectedCategory?.name.toLocaleLowerCase()
+        ) {
+          if (category.list.includes(value)) {
+            toast.error("Valor já existe na lista");
+            return category;
+          }
+
+          return {
+            ...category,
+            list: [...category.list, value],
+          };
+        }
+
+        return category;
+      });
+
+      setCategories(newCategories);
+      setSelectedCategory({
+        ...selectedCategory,
+        list: selectedCategory.list.filter((item) => item !== name),
+      });
+      setAddField(false);
+    }
   };
 
   useEffect(() => {
@@ -111,19 +132,19 @@ export default function CategoryName() {
         </div>
       ) : (
         <div className={``}>
-          <div className={`grid grid-cols-10 m-2`}>
+          <div className={`grid grid-cols-10 m-2 `}>
             <span
-              className={`w-full flex items-center capitalize border-r-2 text-blue-950 m-2 col-span-9`}
+              className={`w-full flex items-center capitalize border-r-2 text-blue-950 m-2 col-span-9 max-sm:col-span-6`}
             >
               Nome
             </span>
             {!addField && (
               <button
                 onClick={() => setAddField(true)}
-                className="flex items-center justify-center gap-2 text-white bg-green-700 rounded-md my-3 py-2 font-extrabold"
+                className="flex items-center justify-center gap-2 text-white bg-green-700 rounded-md my-3 py-2 font-extrabold max-sm:col-span-4"
               >
                 Adicionar
-                <PiPlusCircleDuotone />
+                <PiPlusCircleDuotone className="max-sm:text-2xl" />
               </button>
             )}
           </div>
@@ -148,23 +169,23 @@ export default function CategoryName() {
           )}
 
           <div className="grid gap-2 ">
-            {categoriesList.map((category) => (
+            {selectedCategory?.list.map((category) => (
               <div
                 key={category}
-                className="grid grid-cols-10 text-center bg-white p-5 rounded-md text-blue-950 "
+                className="grid grid-cols-10 text-center bg-white p-5 rounded-md text-blue-950 max-sm:py-3"
               >
                 <span
-                  className={`w-full flex capitalize col-span-9 border-r-2 `}
+                  className={`w-full flex items-center capitalize col-span-9 `}
                 >
                   {category}
                 </span>
 
                 <button
                   onClick={() => handleDeleteValueOnList(category)}
-                  className="flex items-center justify-center gap-2 text-white bg-red-700 rounded-md px-4 font-extrabold"
+                  className="flex items-center justify-center gap-2 text-white bg-red-700 rounded-md py-2 "
                 >
-                  Deletar
-                  <PiTrashSimpleDuotone />
+                  <span className="font-extrabold max-sm:hidden">Deletar</span>
+                  <PiTrashSimpleDuotone className="max-sm:text-xl" />
                 </button>
               </div>
             ))}

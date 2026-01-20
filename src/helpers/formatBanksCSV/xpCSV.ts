@@ -1,7 +1,3 @@
-import { LOCAL_STORAGE_KEY } from "@/constants/keys";
-import { ICategory } from "@/types/data";
-import { getCategory } from "../getCategory";
-
 export function formatXpCSV(csv: string) {
   const lines = csv.split("\r\n");
 
@@ -18,9 +14,8 @@ export function formatXpCSV(csv: string) {
     var currentLine = lines[i].split(";");
 
     for (var j = 0; j < formattedHeaders.length; j++) {
-      obj[
-        "Identificador"
-      ] = `${currentLine[0]}-${currentLine[1]}-${currentLine[2]}-${currentLine[3]}-${currentLine[4]}`;
+      obj["Identificador"] =
+        `${currentLine[0]}-${currentLine[1]}-${currentLine[2]}-${currentLine[3]}-${currentLine[4]}`;
 
       formatValues({
         json: obj,
@@ -34,19 +29,22 @@ export function formatXpCSV(csv: string) {
   }
 
   // Analyze which month has the highest data
-  const monthlyStats = result.reduce((acc, item) => {
-    if (!item.Data || !item.Valor) return acc;
+  const monthlyStats = result.reduce(
+    (acc, item) => {
+      if (!item.Data || !item.Valor) return acc;
 
-    const monthKey = item.Data.substring(3, 5); // MM format
+      const monthKey = item.Data.substring(3, 5); // MM format
 
-    if (!acc[monthKey]) {
-      acc[monthKey] = 0;
-    }
+      if (!acc[monthKey]) {
+        acc[monthKey] = 0;
+      }
 
-    acc[monthKey] += 1;
+      acc[monthKey] += 1;
 
-    return acc;
-  }, {} as Record<string, number>);
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
 
   // Find month with highest total value
   let highestMonth = "";
@@ -93,10 +91,7 @@ const formatValues = ({
       return;
     }
 
-    const category = getCategory(value);
-
-    json["Categoria"] = category;
-
+    json["Categoria"] = "";
     json["Estabelecimento"] = value;
   }
 

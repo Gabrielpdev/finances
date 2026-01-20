@@ -1,26 +1,22 @@
 "use client";
-import { initializeApp } from "firebase/app";
-import { useState, useEffect, createContext } from "react";
+import { useState, createContext, useEffect } from "react";
 
 import {
   GoogleAuthProvider,
   signInWithPopup,
-  getAuth,
   signOut,
+  User,
 } from "firebase/auth";
 import { IUserContext } from "@/types/data";
 
-// const firebaseConfig = {
-//   apiKey: process.env.NEXT_PUBLIC_API_KEY,
-//   authDomain: process.env.NEXT_PUBLIC_AUTH_DOMAIN,
-//   projectId: process.env.NEXT_PUBLIC_PROJECT_ID,
-//   storageBucket: process.env.NEXT_PUBLIC_STORAGE_BUCKET,
-//   messagingSenderId: process.env.NEXT_PUBLIC_MESSAGING_SENDER_ID,
-//   appId: process.env.NEXT_PUBLIC_APP_ID,
-//   measurementId: process.env.NEXT_PUBLIC_MEASUREMENT_ID,
-// };
+import { auth } from "@/lib/firebase-client";
+import { useRouter } from "next/navigation";
+import { Loading } from "@/components/loading";
+import { checkUserToken } from "@/app/actions/checkUserToken";
+import { createSession } from "@/app/actions/createSession";
+import { deleteSession } from "@/app/actions/deleteSession";
 
-// export const app = initializeApp(firebaseConfig);
+const provider = new GoogleAuthProvider();
 
 export const UserContext = createContext({} as IUserContext);
 
@@ -29,53 +25,69 @@ export default function FirebaseProvider({
 }: {
   children: React.ReactNode;
 }) {
+  const { replace } = useRouter();
+
   const [user, setUser] = useState<any>(null);
 
+  const [isUserAllowed, setIsUserAllowed] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const login = async () => {
     setLoading(true);
-    const auth = getAuth();
 
-    const userCred = await signInWithPopup(auth, new GoogleAuthProvider());
+    const userCred = await signInWithPopup(auth, provider);
     setUser(userCred.user);
   };
 
   const logout = async () => {
-    const auth = getAuth();
-
+    await deleteSession();
     await signOut(auth);
+    setIsUserAllowed(false);
   };
 
-  // useEffect(() => {
-  //   // const auth = getAuth(app);
-  //   // auth.onAuthStateChanged(async (user) => {
-  //   //   setUser(user);
-  //   //   setLoading(false);
-  //   // });
-  // }, []);
+  const onChangeAuth = async (user: User | null) => {
+    if (!user) {
+      replace("/login");
+      setLoading(false);
+      return;
+    }
 
-  // if (!user) {
-  //   return <button onClick={login}>LOGIN</button>;
-  // }
+    const token = await user.getIdToken();
+    await createSession(token!);
 
-  // if (loading) {
-  //   return <h1>Loading user</h1>;
-  // }
+    const isAllowed = await checkUserToken();
 
-  // if (user.email !== process.env.NEXT_PUBLIC_USER_EMAIL) {
-  //   return (
-  //     <>
-  //       <h1>User not allowed</h1>
-  //       <button onClick={logout}>LOGOUT</button>
-  //     </>
-  //   );
-  // }
+    if (!isAllowed) {
+      setLoading(false);
+      setIsUserAllowed(false);
+      replace("/not-allowed");
+      return;
+    }
+
+    setIsUserAllowed(true);
+    setUser(user);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    auth.onAuthStateChanged(onChangeAuth);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="w-full h-60 flex items-center justify-center">
+        <Loading />
+      </div>
+    );
+  }
 
   return (
     <UserContext.Provider
       value={{
+        isUserAllowed,
         user,
+        login,
+        logout,
       }}
     >
       {children}

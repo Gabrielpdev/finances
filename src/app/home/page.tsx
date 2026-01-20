@@ -8,10 +8,14 @@ import { Loading } from "@/components/loading";
 import { formatToDate } from "@/utils/formatToDate";
 import { LOCAL_STORAGE_KEY } from "@/constants/keys";
 import { CurrencyContext } from "@/providers/currency";
-import { header } from "@/constants/tableHeader";
 import { groupByMonths } from "@/helpers/groupByMonths";
-import { TableValue } from "@/components/elements/tableValue";
-import { PiXCircleLight } from "react-icons/pi";
+import { DataTable } from "@/components/modules/dataTable";
+import { HeaderTable } from "@/components/modules/headerTable";
+
+import { listDatas } from "../actions/data/list";
+import { listCategories } from "../actions/categories/list";
+import { CategoriesContext } from "@/providers/categories";
+
 
 export default function Home() {
   const [showedData, setShowedData] = useState<IShowedData>({});
@@ -29,32 +33,21 @@ export default function Home() {
   const [selectedFilterCategory, setSelectedFilterCategory] = useState("Todos");
 
   const [selectedItemToExclude, setSelectedItemToExclude] = useState<string[]>(
-    []
+    [],
   );
 
   const { setValue } = useContext(CurrencyContext);
+  const { setCategories, categories } = useContext(CategoriesContext);
 
   const readJsonFile = async () => {
     setLoading(true);
     try {
-      // const token = await user?.getIdToken();
-      // if (!token) return;
+      const savedData = await listDatas();
+      const savedCategories = await listCategories();
 
-      // const response = await fetch(`/api/list`, {
-      //   headers: {
-      //     Authorization: `${token}`,
-      //   },
-      //   credentials: "include",
-      // });
-
-      // const { data } = await response.json();
-
-      // if (!data) return;
-      const dataString = localStorage.getItem(LOCAL_STORAGE_KEY);
-      const data = dataString ? JSON.parse(dataString) : [];
-
-      setRawData(data);
-      removeCreditDatas(data);
+      setCategories(savedCategories);
+      setRawData(savedData);
+      removeCreditDatas(savedData);
     } catch (error) {
       console.error("Error:", error);
     } finally {
@@ -90,7 +83,7 @@ export default function Home() {
       setTypesOptions(typeFilterList);
 
       const categoriesString = localStorage.getItem(
-        `${LOCAL_STORAGE_KEY}_categories`
+        `${LOCAL_STORAGE_KEY}_categories`,
       );
       const categories = categoriesString ? JSON.parse(categoriesString) : [];
 
@@ -102,19 +95,6 @@ export default function Home() {
     } catch (error) {
       console.error("Error:", error);
     }
-  };
-
-  const onSelectItemToExclude = (itemId: string) => {
-    const updatedExcludedItems = [...selectedItemToExclude];
-
-    if (updatedExcludedItems.includes(itemId)) {
-      const index = updatedExcludedItems.indexOf(itemId);
-      updatedExcludedItems.splice(index, 1);
-    } else {
-      updatedExcludedItems.push(itemId);
-    }
-
-    setSelectedItemToExclude(updatedExcludedItems);
   };
 
   const formatTotalValue = useCallback(() => {
@@ -170,6 +150,7 @@ export default function Home() {
     selectedFilterType,
     selectedFilterCategory,
     selectedItemToExclude,
+    setValue,
   ]);
 
   useEffect(() => {
@@ -233,24 +214,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="border py-3 bg-neutral-200 max-sm:hidden">
-        <div
-          className={`grid grid-cols-[repeat(40,_minmax(0,_1fr))] text-center`}
-        >
-          {header.map((item) => (
-            <span
-              key={item}
-              className={`flex ${
-                item === "Estabelecimento"
-                  ? "col-[span_21]"
-                  : "col-[span_6] justify-center"
-              } items-center border-r-2 max-sm:border text-zinc-400`}
-            >
-              {item}
-            </span>
-          ))}
-        </div>
-      </div>
+      <HeaderTable />
 
       {loading ? (
         <div className="w-full h-60 flex items-center justify-center">
@@ -260,7 +224,7 @@ export default function Home() {
         Object.entries(showedData)
           ?.filter(
             ([key]) =>
-              key === selectedFilterDate || selectedFilterDate === "Todos"
+              key === selectedFilterDate || selectedFilterDate === "Todos",
           )
           ?.map(([key, month]) => {
             return (
@@ -273,46 +237,20 @@ export default function Home() {
                   .filter(
                     (item) =>
                       selectedFilterType === "Todos" ||
-                      selectedFilterType === item["Tipo"]
+                      selectedFilterType === item["Tipo"],
                   )
                   .filter(
                     (item) =>
                       selectedFilterCategory === "Todos" ||
-                      selectedFilterCategory === item["Categoria"].name
+                      selectedFilterCategory === item["Categoria"].name,
                   )
                   .map((item) => (
-                    <div
+                    <DataTable
+                      item={item}
+                      selectedItemToExclude={selectedItemToExclude}
+                      setSelectedItemToExclude={setSelectedItemToExclude}
                       key={item.Identificador}
-                      className={`grid grid-cols-[repeat(40,_minmax(0,_1fr))] text-center bg-white p-5 pr-1 rounded-md ${
-                        selectedItemToExclude.includes(item.Identificador)
-                          ? "opacity-60"
-                          : ""
-                      } max-sm:flex max-sm:flex-wrap max-sm:justify-center`}
-                    >
-                      {header.map((headerItem) => (
-                        <div
-                          key={headerItem}
-                          className={`flex items-center justify-between flex-col ${
-                            headerItem === "Estabelecimento"
-                              ? "col-[span_21]"
-                              : "col-[span_6]"
-                          }`}
-                        >
-                          <TableValue
-                            item={item}
-                            type={headerItem as keyof IData}
-                          />
-                        </div>
-                      ))}
-                      <button
-                        onClick={() =>
-                          onSelectItemToExclude(item.Identificador)
-                        }
-                        className={`flex items-center justify-center flex-col col-span-1 max-sm:px-2`}
-                      >
-                        <PiXCircleLight />
-                      </button>
-                    </div>
+                    />
                   ))}
               </div>
             );

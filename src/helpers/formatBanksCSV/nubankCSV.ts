@@ -1,6 +1,3 @@
-import { LOCAL_STORAGE_KEY } from "@/constants/keys";
-import { ICategory } from "@/types/data";
-
 export function formatNubankCSV(csv: string) {
   const lines = csv.split("\n");
 
@@ -39,20 +36,7 @@ const formatValues = ({
   type: string;
   value: string;
 }) => {
-  const categoriesString = localStorage.getItem(
-    `${LOCAL_STORAGE_KEY}_categories`
-  );
-  const categories = (
-    categoriesString ? JSON.parse(categoriesString) : []
-  ) as ICategory[];
-
   if (type === "Estabelecimento" && value) {
-    const fined = categories.find((category) =>
-      category.list.some((item) => item === value)
-    );
-
-    json["Categoria"] = fined ? fined.name : "Outros";
-
     if (value.includes("Transferência")) {
       json[type] = value
         .replace(/^((?:[^-]*-){1}[^-]*)-.*$/, "$1")
@@ -68,6 +52,8 @@ const formatValues = ({
       json[type] = value.replace(/-.*$/, "").trim();
       return;
     }
+
+    json["Categoria"] = "";
   }
 
   if (type === "Valor" && value) {

@@ -1,14 +1,14 @@
-import { LOCAL_STORAGE_KEY } from "@/constants/keys";
-import { ICategory } from "@/types/data";
+"use client";
+import { useContext } from "react";
 
-export const getCategory = (value: string) => {
-  const categoriesString = localStorage.getItem(
-    `${LOCAL_STORAGE_KEY}_categories`
-  );
-  const categories = categoriesString ? JSON.parse(categoriesString) : [];
+import { ICategory } from "@/types/data";
+import { CategoriesContext } from "@/providers/categories";
+
+export const useGetCategory = (value: string) => {
+  const { categories } = useContext(CategoriesContext);
 
   const fined = categories.find((category: ICategory) =>
-    category.list.some((item) => value.includes(item))
+    category.list.some((item) => value.includes(item)),
   );
 
   return fined

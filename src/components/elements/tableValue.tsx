@@ -1,4 +1,5 @@
 import PiIcons from "@/components/elements/icons";
+import { useGetCategory } from "@/helpers/getCategory";
 import { IData } from "@/types/data";
 
 interface TableValueProps {
@@ -18,16 +19,19 @@ export const getColor = (item: IData, type: keyof IData) => {
 };
 
 export const TableValue = ({ item, type }: TableValueProps) => {
+  const estabelecimento = item["Estabelecimento"];
+  const category = useGetCategory(estabelecimento);
+
   const className = `w-full flex gap-1 items-center capitalize justify-center border-r-2 ${getColor(
     item,
-    type
+    type,
   )} max-sm:px-2`;
   const value = item[type as keyof IData];
 
-  if (!value) return;
+  // if (!value) return;
 
   if (type === "Estabelecimento") {
-    const establishmentClassName = `w-full flex items-center capitalize border-r-2 text-blue-950 max-sm:px-2`;
+    const establishmentClassName = `w-full flex items-center capitalize border-r-2 text-blue-950 max-sm:px-2 max-sm:w-full max-sm:justify-center`;
 
     if (item["Parcela"]) {
       const parcelaFormatted = `${value} ${
@@ -46,14 +50,16 @@ export const TableValue = ({ item, type }: TableValueProps) => {
       currency: "BRL",
     });
 
-    return <span className={className}>{currencyValue}</span>;
+    return (
+      <span className={`${className} max-sm:border-l-2`}>{currencyValue}</span>
+    );
   }
 
   if (type === "Categoria") {
     return (
       <span className={className}>
-        {item.Categoria.name}
-        <PiIcons iconName={item.Categoria.icon} />{" "}
+        {category.name}
+        <PiIcons iconName={category.icon} />{" "}
       </span>
     );
   }

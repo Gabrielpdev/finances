@@ -1,5 +1,3 @@
-import { getCategory } from "../getCategory";
-
 export function formatMercadoPagoCSV(csv: string) {
   const lines = csv.split("\n");
   const result: any[] = [];
@@ -78,9 +76,7 @@ const formatValues = ({
       formattedValue = value.replace(/-.*$/, "").trim();
     }
 
-    const category = getCategory(formattedValue);
-    json["Categoria"] = category;
-
+    json["Categoria"] = "";
     json[type] = formattedValue;
     return;
   }

@@ -1,13 +1,18 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
-
-import "./globals.css";
-import FirebaseProvider from "@/providers/firebase";
-import Header from "@/components/layout/header";
-import CurrencyProvider from "@/providers/currency";
 import { ToastContainer } from "react-toastify";
 
+import FirebaseProvider from "@/providers/firebase";
+import CurrencyProvider from "@/providers/currency";
+import CategoriesProvider from "@/providers/categories";
+
+import Header from "@/components/layout/header";
+
+import "./globals.css";
+
 const inter = Poppins({ subsets: ["latin"], weight: "400" });
+
+export const runtime = "nodejs";
 
 export const metadata: Metadata = {
   title: "Finanças",
@@ -22,14 +27,18 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <CurrencyProvider>
-          <div className="bg-neutral-200 min-h-screen pb-4 overflow-hidden">
-            <ToastContainer />
-            <Header />
+        <FirebaseProvider>
+          <CurrencyProvider>
+            <CategoriesProvider>
+              <div className="bg-neutral-200 min-h-screen h-full pb-4 overflow-hidden">
+                <ToastContainer />
+                <Header />
 
-            <FirebaseProvider>{children}</FirebaseProvider>
-          </div>
-        </CurrencyProvider>
+                {children}
+              </div>
+            </CategoriesProvider>
+          </CurrencyProvider>
+        </FirebaseProvider>
       </body>
     </html>
   );
