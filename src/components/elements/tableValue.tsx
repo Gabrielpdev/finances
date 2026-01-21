@@ -1,13 +1,15 @@
 import PiIcons from "@/components/elements/icons";
-import { useGetCategory } from "@/helpers/getCategory";
-import { IData } from "@/types/data";
+import { getCategory } from "@/helpers/getCategory";
+import { CategoriesContext } from "@/providers/categories";
+import { IFormattedData } from "@/types/data";
+import { useContext } from "react";
 
 interface TableValueProps {
-  item: IData;
-  type: keyof IData;
+  item: IFormattedData;
+  type: keyof IFormattedData;
 }
 
-export const getColor = (item: IData, type: keyof IData) => {
+export const getColor = (item: IFormattedData, type: keyof IFormattedData) => {
   const value = item[type];
 
   if (type === "Valor") {
@@ -19,14 +21,13 @@ export const getColor = (item: IData, type: keyof IData) => {
 };
 
 export const TableValue = ({ item, type }: TableValueProps) => {
-  const estabelecimento = item["Estabelecimento"];
-  const category = useGetCategory(estabelecimento);
+  const { categories } = useContext(CategoriesContext);
 
   const className = `w-full flex gap-1 items-center capitalize justify-center border-r-2 ${getColor(
     item,
     type,
   )} max-sm:px-2`;
-  const value = item[type as keyof IData];
+  const value = item[type as keyof IFormattedData];
 
   // if (!value) return;
 
@@ -56,6 +57,9 @@ export const TableValue = ({ item, type }: TableValueProps) => {
   }
 
   if (type === "Categoria") {
+    const estabelecimento = item["Estabelecimento"];
+    const category = getCategory(estabelecimento, categories);
+
     return (
       <span className={className}>
         {category.name}

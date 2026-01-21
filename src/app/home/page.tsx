@@ -2,11 +2,10 @@
 import { useCallback, useContext, useEffect, useState } from "react";
 
 import { months } from "@/constants/months";
-import { IData, IShowedData } from "@/types/data";
+import { ICategory, IData, IShowedData } from "@/types/data";
 
 import { Loading } from "@/components/loading";
 import { formatToDate } from "@/utils/formatToDate";
-import { LOCAL_STORAGE_KEY } from "@/constants/keys";
 import { CurrencyContext } from "@/providers/currency";
 import { groupByMonths } from "@/helpers/groupByMonths";
 import { DataTable } from "@/components/modules/dataTable";
@@ -15,7 +14,10 @@ import { HeaderTable } from "@/components/modules/headerTable";
 import { listDatas } from "../actions/data/list";
 import { listCategories } from "../actions/categories/list";
 import { CategoriesContext } from "@/providers/categories";
+import { getCategory } from "@/helpers/getCategory";
 
+import MultiSelect from "@/components/elements/multiSelect";
+import Select from "@/components/elements/select";
 
 export default function Home() {
   const [showedData, setShowedData] = useState<IShowedData>({});
@@ -24,13 +26,14 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   const [typesOptions, setTypesOptions] = useState<string[]>([]);
-  const [selectedFilterType, setSelectedFilterType] = useState("Todos");
+  const [selectedFilterType, setSelectedFilterType] = useState("");
 
-  const [dateOptions, setDateOptions] = useState<any>([]);
-  const [selectedFilterDate, setSelectedFilterDate] = useState("Todos");
+  const [dateOptions, setDateOptions] = useState<string[]>([]);
+  const [selectedFilterDate, setSelectedFilterDate] = useState<string[]>([]);
 
-  const [categoryOptions, setCategoriesOptions] = useState<any>([]);
-  const [selectedFilterCategory, setSelectedFilterCategory] = useState("Todos");
+  const [selectedFilterCategory, setSelectedFilterCategory] = useState<
+    string[]
+  >([]);
 
   const [selectedItemToExclude, setSelectedItemToExclude] = useState<string[]>(
     [],
@@ -39,85 +42,85 @@ export default function Home() {
   const { setValue } = useContext(CurrencyContext);
   const { setCategories, categories } = useContext(CategoriesContext);
 
-  const readJsonFile = async () => {
+  const removeCreditDatas = useCallback(
+    async (data: IData[], savedCategories: ICategory[]) => {
+      try {
+        const uniqueDateMap = new Map();
+        const uniqueTypeMap = new Map();
+
+        data.forEach((obj) => {
+          const date = formatToDate(obj);
+
+          const monthKey = `${months[date.getMonth()]}-${date.getFullYear()}`;
+
+          uniqueDateMap.set(monthKey, monthKey);
+          uniqueTypeMap.set(obj.Tipo, obj.Tipo);
+        });
+
+        data.sort((a, b) => {
+          const dateA = formatToDate(a);
+          const dateB = formatToDate(b);
+
+          return dateB.getTime() - dateA.getTime();
+        });
+
+        const dateFilterList = Array.from(uniqueDateMap.values()) as string[];
+        setDateOptions(dateFilterList);
+
+        const typeFilterList = Array.from(uniqueTypeMap.values());
+        setTypesOptions(typeFilterList);
+
+        const grouped = groupByMonths(data, savedCategories);
+
+        setShowedData(grouped);
+        setCategories(savedCategories);
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    },
+    [],
+  );
+
+  const readJsonFile = useCallback(async () => {
     setLoading(true);
     try {
       const savedData = await listDatas();
       const savedCategories = await listCategories();
 
-      setCategories(savedCategories);
       setRawData(savedData);
-      removeCreditDatas(savedData);
+      removeCreditDatas(savedData, savedCategories);
     } catch (error) {
       console.error("Error:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [removeCreditDatas]);
 
-  const removeCreditDatas = async (data: IData[]) => {
-    try {
-      const uniqueDateMap = new Map();
-      const uniqueTypeMap = new Map();
-
-      data.forEach((obj) => {
-        const date = formatToDate(obj);
-
-        const monthKey = `${months[date.getMonth()]}-${date.getFullYear()}`;
-
-        uniqueDateMap.set(monthKey, monthKey);
-        uniqueTypeMap.set(obj.Tipo, obj.Tipo);
-      });
-
-      data.sort((a, b) => {
-        const dateA = formatToDate(a);
-        const dateB = formatToDate(b);
-
-        return dateB.getTime() - dateA.getTime();
-      });
-
-      const dateFilterList = Array.from(uniqueDateMap.values());
-      setDateOptions(dateFilterList);
-
-      const typeFilterList = Array.from(uniqueTypeMap.values());
-      setTypesOptions(typeFilterList);
-
-      const categoriesString = localStorage.getItem(
-        `${LOCAL_STORAGE_KEY}_categories`,
-      );
-      const categories = categoriesString ? JSON.parse(categoriesString) : [];
-
-      setCategoriesOptions(categories);
-
-      const grouped = groupByMonths(data);
-
-      setShowedData(grouped);
-    } catch (error) {
-      console.error("Error:", error);
-    }
-  };
+  useEffect(() => {
+    readJsonFile();
+  }, [readJsonFile]);
 
   const formatTotalValue = useCallback(() => {
     let inTotal = 0;
     let outTotal = 0;
 
     for (const item of rawData) {
-      if (selectedFilterDate !== "Todos") {
+      if (selectedFilterDate.length !== 0) {
         const date = formatToDate(item);
         const itemMonth = `${months[date.getMonth()]}-${date.getFullYear()}`;
-        if (selectedFilterDate !== itemMonth) continue;
+
+        if (!selectedFilterDate.includes(itemMonth)) continue;
       }
 
-      if (
-        selectedFilterType !== "Todos" &&
-        selectedFilterType !== item["Tipo"]
-      ) {
+      if (selectedFilterType !== "" && selectedFilterType !== item["Tipo"]) {
         continue;
       }
 
+      const estabelecimento = item["Estabelecimento"];
+      const category = getCategory(estabelecimento, categories);
       if (
-        selectedFilterCategory !== "Todos" &&
-        selectedFilterCategory !== item["Categoria"].name
+        selectedFilterCategory.length !== 0 &&
+        !selectedFilterCategory.includes(category.name)
       ) {
         continue;
       }
@@ -146,16 +149,13 @@ export default function Home() {
     });
   }, [
     rawData,
+    categories,
     selectedFilterDate,
     selectedFilterType,
     selectedFilterCategory,
     selectedItemToExclude,
     setValue,
   ]);
-
-  useEffect(() => {
-    readJsonFile();
-  }, []);
 
   useEffect(() => {
     formatTotalValue();
@@ -165,52 +165,31 @@ export default function Home() {
     <div className="flex max-w-6xl w-full flex-col mt-24 m-auto">
       <div className="flex items-center gap-5 p-2 max-sm:flex-wrap">
         <div className="flex gap-1">
-          <label htmlFor="data">Data:</label>
-          <select
-            className="text-black"
-            id="data"
-            onChange={(e) => setSelectedFilterDate(e.target.value)}
-          >
-            <option className="text-black">Todos</option>
-            {dateOptions?.map((item: any) => (
-              <option className="text-black" key={item}>
-                {item}
-              </option>
-            ))}
-          </select>
+          <MultiSelect
+            label="Data:"
+            options={dateOptions.map((cat) => cat)}
+            selected={selectedFilterDate}
+            onSelect={(value) => setSelectedFilterDate(value)}
+          />
         </div>
 
         <div className="flex gap-1">
-          <label htmlFor="tipo">Tipo:</label>
-          <select
-            className="text-black"
-            id="tipo"
-            onChange={(e) => setSelectedFilterType(e.target.value)}
-          >
-            <option className="text-black">Todos</option>
-            {typesOptions?.map((item: any) => (
-              <option className="text-black" key={item}>
-                {item}
-              </option>
-            ))}
-          </select>
+          <Select
+            title="Todos"
+            label="Tipo:"
+            options={typesOptions}
+            selected={selectedFilterType}
+            onSelect={(value) => setSelectedFilterType(value)}
+          />
         </div>
 
         <div className="flex gap-1">
-          <label htmlFor="categoria">Categoria:</label>
-          <select
-            className="text-black"
-            id="categoria"
-            onChange={(e) => setSelectedFilterCategory(e.target.value)}
-          >
-            <option className="text-black">Todos</option>
-            <option className="text-black">Outros</option>
-            {categoryOptions?.map((item: any) => (
-              <option className="text-black" key={item.name}>
-                {item.name}
-              </option>
-            ))}
-          </select>
+          <MultiSelect
+            label="Categoria:"
+            options={[...categories.map((cat) => cat.name), "Outros"]}
+            selected={selectedFilterCategory}
+            onSelect={(value) => setSelectedFilterCategory(value)}
+          />
         </div>
       </div>
 
@@ -224,7 +203,8 @@ export default function Home() {
         Object.entries(showedData)
           ?.filter(
             ([key]) =>
-              key === selectedFilterDate || selectedFilterDate === "Todos",
+              selectedFilterDate.length === 0 ||
+              selectedFilterDate.includes(key),
           )
           ?.map(([key, month]) => {
             return (
@@ -236,22 +216,25 @@ export default function Home() {
                 {month
                   .filter(
                     (item) =>
-                      selectedFilterType === "Todos" ||
-                      selectedFilterType === item["Tipo"],
+                      selectedFilterType === "" ||
+                      selectedFilterType === item.Tipo,
                   )
-                  .filter(
-                    (item) =>
-                      selectedFilterCategory === "Todos" ||
-                      selectedFilterCategory === item["Categoria"].name,
-                  )
-                  .map((item) => (
-                    <DataTable
-                      item={item}
-                      selectedItemToExclude={selectedItemToExclude}
-                      setSelectedItemToExclude={setSelectedItemToExclude}
-                      key={item.Identificador}
-                    />
-                  ))}
+                  .filter((item) => {
+                    return (
+                      selectedFilterCategory.length === 0 ||
+                      selectedFilterCategory.includes(item.Categoria.name)
+                    );
+                  })
+                  .map((item) => {
+                    return (
+                      <DataTable
+                        item={item}
+                        selectedItemToExclude={selectedItemToExclude}
+                        setSelectedItemToExclude={setSelectedItemToExclude}
+                        key={item.Identificador}
+                      />
+                    );
+                  })}
               </div>
             );
           })

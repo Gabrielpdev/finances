@@ -1,10 +1,10 @@
-import { IData } from "@/types/data";
+import { IData, IFormattedData, IShowedData } from "@/types/data";
 import { TableValue } from "../elements/tableValue";
 import { PiXCircleLight } from "react-icons/pi";
 import { header } from "@/constants/tableHeader";
 
 export interface DataTableProps {
-  item: IData;
+  item: IFormattedData;
   selectedItemToExclude: string[];
   setSelectedItemToExclude: React.Dispatch<React.SetStateAction<string[]>>;
 }

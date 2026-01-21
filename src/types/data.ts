@@ -3,6 +3,15 @@ export interface IData {
   Estabelecimento: string;
   Parcela: string;
   Portador: string;
+  Valor: string;
+  Tipo: string;
+  Identificador: string;
+}
+export interface IFormattedData {
+  Data: string;
+  Estabelecimento: string;
+  Parcela: string;
+  Portador: string;
   Categoria: {
     name: string;
     icon: string;
@@ -19,7 +28,7 @@ export interface ICategory {
 }
 
 export interface IShowedData {
-  [key: string]: IData[];
+  [key: string]: IFormattedData[];
 }
 
 export interface IUpdateData {
