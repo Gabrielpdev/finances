@@ -1,8 +1,6 @@
 "use client";
 import { useCallback, useContext, useEffect, useState } from "react";
 
-import { IData } from "@/types/data";
-
 import { CurrencyContext } from "@/providers/currency";
 
 import { groupCategories } from "@/helpers/getValuesOnCategories";
@@ -12,9 +10,16 @@ import MultiSelect from "@/components/elements/multiSelect";
 import { formatToDate } from "@/utils/formatToDate";
 import { months } from "@/constants/months";
 import { TransactionsContext } from "@/providers/transactions";
+import { groupByMonths } from "@/helpers/groupByMonths";
+import { HeaderTable } from "@/components/modules/headerTable";
+import { IShowedData } from "@/types/data";
+import { DataTable } from "@/components/modules/dataTable";
+import { MouseHandlerDataParam } from "recharts";
 
 export default function Home() {
   const [chartData, setChartData] = useState<IBarChartData[]>([]);
+
+  const [showedData, setShowedData] = useState<IShowedData>({});
 
   const [dateOptions, setDateOptions] = useState<string[]>([]);
   const [selectedFilterDate, setSelectedFilterDate] = useState<string[]>([]);
@@ -52,11 +57,11 @@ export default function Home() {
         }),
       });
 
-      setChartData(groupCategories(transactions, categories));
+      setChartData(groupCategories(transactions));
     } catch (error) {
       console.error("Error:", error);
     }
-  }, [categories, transactions]);
+  }, [transactions]);
 
   useEffect(() => {
     removeCreditDatas();
@@ -72,13 +77,24 @@ export default function Home() {
         return value.length > 0 ? value.includes(itemMonthYear) : true;
       });
 
-      setChartData(groupCategories(filteredData, categories));
+      setChartData(groupCategories(filteredData));
+    },
+    [transactions],
+  );
+
+  const onSelectCategory = useCallback(
+    (category: MouseHandlerDataParam) => {
+      const filteredData = transactions.filter(
+        (item) => item.Categoria.name === category.activeLabel,
+      );
+
+      setShowedData(groupByMonths(filteredData, categories));
     },
     [transactions, categories],
   );
 
   return (
-    <div className="flex items-center flex-col p-8 gap-4 w-full mt-5">
+    <div className="flex items-center flex-col p-8 gap-4 w-full mt-5 max-sm:p-2">
       <h2 className="text-5xl font-semibold">Visão Geral</h2>
 
       <div className="flex items-center justify-between gap-4 w-full mt-5 m-auto">
@@ -90,9 +106,33 @@ export default function Home() {
         />
       </div>
 
-      <div className="flex  items-center justify-center gap-4 w-full mt-5 bg-white p-6 rounded-lg shadow-md">
-        <SimpleBarChart data={chartData} />
-        <SimpleHorizontalBarChart data={chartData} />
+      <div className="flex items-center flex-col justify-center gap-4 w-full mt-5 bg-white rounded-lg shadow-md">
+        <div className="flex items-center justify-center p-6 gap-4 w-full max-sm:flex-wrap max-sm:p-1">
+          <SimpleBarChart data={chartData} onSelectBar={onSelectCategory} />
+          <SimpleHorizontalBarChart data={chartData} />
+        </div>
+
+        {!!Object.keys(showedData).length && <HeaderTable />}
+
+        {Object.entries(showedData)
+          ?.filter(
+            ([key]) =>
+              selectedFilterDate.length === 0 ||
+              selectedFilterDate.includes(key),
+          )
+          ?.map(([key, month]) => {
+            return (
+              <div key={key} className="gap-1 flex flex-col w-full relative">
+                <div className="flex w-full items-center justify-center text-zinc-400 py-4 sticky top-0">
+                  <h2 className="text-base text-center">{key}</h2>
+                </div>
+
+                {month.map((item) => {
+                  return <DataTable item={item} key={item.Identificador} />;
+                })}
+              </div>
+            );
+          })}
       </div>
     </div>
   );

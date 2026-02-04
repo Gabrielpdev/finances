@@ -9,14 +9,16 @@ import { updateCategories } from "../actions/categories/update";
 import { ICategory } from "@/types/data";
 import { createCategories } from "../actions/categories/create";
 import { TransactionsContext } from "@/providers/transactions";
+import { toast } from "react-toastify";
 
 export default function Category() {
   const inputNameRef = useRef<HTMLInputElement>(null);
   const inputIconRef = useRef<HTMLInputElement>(null);
+  const inputColorRef = useRef<HTMLInputElement>(null);
 
-  const { setCategories, categories } = useContext(TransactionsContext);
+  const { setCategories, categories, updateLocalTransactions } =
+    useContext(TransactionsContext);
 
-  const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [isEditing, setIsEditing] = useState("");
 
@@ -34,6 +36,7 @@ export default function Category() {
           id: v4(),
           name: inputNameRef?.current?.value,
           icon: inputIconRef?.current?.value,
+          color: inputColorRef?.current?.value || "#FFFFFF",
           list: [],
         } as ICategory;
 
@@ -44,9 +47,13 @@ export default function Category() {
 
         try {
           await createCategories(newCategory);
+          updateLocalTransactions();
+
+          toast.success("Categoria criada com sucesso!");
         } catch (error) {
           console.error("Failed to create category:", error);
           setCategories(categories);
+          toast.error("Falha ao criar categoria.");
         }
       }
     }
@@ -63,15 +70,20 @@ export default function Category() {
 
     try {
       await deleteCategories({ id });
+      updateLocalTransactions();
+
+      toast.success("Categoria deletada com sucesso!");
     } catch (error) {
       console.error("Failed to delete category:", error);
       setCategories(categories);
+      toast.error("Falha ao deletar categoria.");
     }
   };
 
   const handleEditCategory = async (id: string) => {
     const name = inputNameRef?.current?.value;
     const icon = inputIconRef?.current?.value;
+    const color = inputColorRef?.current?.value || "#ffffff";
 
     if (!name || !icon) return;
 
@@ -83,6 +95,7 @@ export default function Category() {
           ...category,
           name,
           icon,
+          color,
         };
       }
       return category;
@@ -100,10 +113,14 @@ export default function Category() {
           ...(foundCategory as ICategory),
           name,
           icon,
+          color,
         },
       });
+      updateLocalTransactions();
+      toast.success("Categoria atualizada com sucesso!");
     } catch (error) {
       console.error("Failed to update category:", error);
+      toast.error("Falha ao atualizar categoria.");
       setCategories(categories);
     }
   };
@@ -143,11 +160,15 @@ export default function Category() {
         {isAdding && (
           <form
             onSubmit={handleSaveNewCategory}
-            className={`grid grid-cols-10 text-center bg-white p-5 rounded-md w-full mb-2`}
+            className={`grid grid-cols-11 text-center bg-white p-5 rounded-md w-full mb-2`}
           >
             <input
               ref={inputNameRef}
               className={`w-full flex capitalize col-span-9 border-r-2 text-blue-950`}
+            />
+            <input
+              ref={inputColorRef}
+              className={`w-full flex items-center capitalize justify-center border-r-2 text-blue-950`}
             />
             <input
               ref={inputIconRef}
@@ -165,6 +186,7 @@ export default function Category() {
                 isEditing={isEditing}
                 inputIconRef={inputIconRef}
                 inputNameRef={inputNameRef}
+                inputColorRef={inputColorRef}
               />
               <div className="flex flex-col items-center justify-center gap-1 w-full max-sm:col-span-12 max-sm:flex-row max-sm:gap-2 max-sm:pb-3 max-sm:border-b-2 max-sm:border-green-800">
                 <button

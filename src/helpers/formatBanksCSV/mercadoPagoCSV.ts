@@ -1,4 +1,7 @@
-export function formatMercadoPagoCSV(csv: string) {
+import { ICategory } from "@/types/data";
+import { getCategory } from "../getCategory";
+
+export function formatMercadoPagoCSV(csv: string, categories: ICategory[]) {
   const lines = csv.split("\n");
   const result: any[] = [];
   const headers = lines[3].split(";");
@@ -22,6 +25,7 @@ export function formatMercadoPagoCSV(csv: string) {
           json: obj,
           type: formattedHeaders[j],
           value: currentLine[j],
+          categories,
         });
       }
     }
@@ -44,6 +48,7 @@ export function formatMercadoPagoCSV(csv: string) {
     totalRendimentos += item["Valor"];
     lastData = {
       ...result[result.length - 2],
+      Identificador: new Date().getTime().toString(),
       Estabelecimento: "Rendimentos Totais",
       Valor: totalRendimentos,
     };
@@ -60,10 +65,12 @@ const formatValues = ({
   json,
   type,
   value,
+  categories,
 }: {
   json: Record<string, any>;
   type: string;
   value: string;
+  categories: ICategory[];
 }) => {
   if (type === "Estabelecimento" && value) {
     let formattedValue = value;
@@ -76,7 +83,9 @@ const formatValues = ({
       formattedValue = value.replace(/-.*$/, "").trim();
     }
 
-    json["Categoria"] = "";
+    const category = getCategory(value, categories);
+
+    json["Categoria"] = category;
     json[type] = formattedValue;
     return;
   }

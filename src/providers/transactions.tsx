@@ -33,7 +33,7 @@ export default function TransactionsProvider({
     if (transactions.length <= 0) {
       savedData = await listDatas();
     }
-    console.log(savedData);
+
     putCategoriesOnTransactions(savedData, savedCategories);
   }, []);
 
@@ -57,6 +57,21 @@ export default function TransactionsProvider({
     [],
   );
 
+  const refreshTransactions = useCallback(async () => {
+    const savedData = await listDatas();
+    putCategoriesOnTransactions(savedData, categories);
+  }, [categories, putCategoriesOnTransactions]);
+
+  const refreshCategories = useCallback(async () => {
+    const savedCategories = await listCategories();
+    setCategories(savedCategories);
+    putCategoriesOnTransactions(transactions, savedCategories);
+  }, [transactions, putCategoriesOnTransactions]);
+
+  function updateLocalTransactions() {
+    putCategoriesOnTransactions(transactions, categories);
+  }
+
   useEffect(() => {
     readJsonFile();
   }, []);
@@ -68,6 +83,9 @@ export default function TransactionsProvider({
         setTransactions,
         categories,
         setCategories,
+        refreshTransactions,
+        refreshCategories,
+        updateLocalTransactions,
       }}
     >
       {children}

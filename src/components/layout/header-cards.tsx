@@ -3,26 +3,13 @@ import { useContext } from "react";
 import Card from "../elements/cards";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { CurrencyContext } from "@/providers/currency";
-import { PiFloppyDisk } from "react-icons/pi";
-import { toast } from "react-toastify";
-import { createCategories } from "@/app/actions/categories/create";
-import { TransactionsContext } from "@/providers/transactions";
 
 export default function HeaderDescription() {
   const path = usePathname();
   const params = useParams();
-  const { back, push } = useRouter();
+  const { back } = useRouter();
 
   const { value } = useContext(CurrencyContext);
-  const { categories } = useContext(TransactionsContext);
-
-  async function handleSaveCategory() {
-    for (const category of categories) {
-      await createCategories(category);
-    }
-    toast.success("Categorias salvas com sucesso!");
-    push("/dashboard");
-  }
 
   if (path === "/home")
     return (
@@ -54,14 +41,6 @@ export default function HeaderDescription() {
           <button onClick={back}>{`<`}</button>
           {path.replace("/", "")}
         </div>
-
-        <button
-          className="flex items-center gap-1 font-normal text-2xl "
-          onClick={handleSaveCategory}
-        >
-          Salvar
-          <PiFloppyDisk />
-        </button>
       </h2>
     );
 

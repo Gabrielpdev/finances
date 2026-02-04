@@ -40,35 +40,26 @@ export default function Home() {
   const { transactions, categories } = useContext(TransactionsContext);
 
   const removeCreditDatas = useCallback(
-    async (data: IData[], savedCategories: ICategory[]) => {
+    (data: IData[], savedCategories: ICategory[]) => {
       try {
-        const uniqueDateMap = new Map();
-        const uniqueTypeMap = new Map();
+        const dateSet = new Set<string>();
+        const typeSet = new Set<string>();
 
-        data.forEach((obj) => {
+        for (const obj of data) {
           const date = formatToDate(obj);
-
           const monthKey = `${months[date.getMonth()]}-${date.getFullYear()}`;
+          dateSet.add(monthKey);
+          typeSet.add(obj.Tipo);
+        }
 
-          uniqueDateMap.set(monthKey, monthKey);
-          uniqueTypeMap.set(obj.Tipo, obj.Tipo);
+        const sorted = [...data].sort((a, b) => {
+          return formatToDate(b).getTime() - formatToDate(a).getTime();
         });
 
-        data.sort((a, b) => {
-          const dateA = formatToDate(a);
-          const dateB = formatToDate(b);
+        setDateOptions(Array.from(dateSet));
+        setTypesOptions(Array.from(typeSet));
 
-          return dateB.getTime() - dateA.getTime();
-        });
-
-        const dateFilterList = Array.from(uniqueDateMap.values()) as string[];
-        setDateOptions(dateFilterList);
-
-        const typeFilterList = Array.from(uniqueTypeMap.values());
-        setTypesOptions(typeFilterList);
-
-        const grouped = groupByMonths(data, savedCategories);
-
+        const grouped = groupByMonths(sorted, savedCategories);
         setShowedData(grouped);
       } catch (error) {
         console.error("Error:", error);

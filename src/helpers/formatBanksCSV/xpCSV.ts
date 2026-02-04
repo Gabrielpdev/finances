@@ -1,7 +1,10 @@
-export function formatXpCSV(csv: string) {
+import { ICategory } from "@/types/data";
+import { getCategory } from "../getCategory";
+
+export function formatXpCSV(csv: string, categories: ICategory[]) {
   const lines = csv.split("\r\n");
 
-  const result = [];
+  let result = [];
 
   const headers = lines[0].split(";");
   const formattedHeaders = headers.map((item) => {
@@ -13,6 +16,8 @@ export function formatXpCSV(csv: string) {
     var obj = {} as any;
     var currentLine = lines[i].split(";");
 
+    if (!currentLine[0]) continue;
+
     for (var j = 0; j < formattedHeaders.length; j++) {
       obj["Identificador"] =
         `${currentLine[0]}-${currentLine[1]}-${currentLine[2]}-${currentLine[3]}-${currentLine[4]}`;
@@ -21,32 +26,88 @@ export function formatXpCSV(csv: string) {
         json: obj,
         type: formattedHeaders[j],
         value: currentLine[j],
+        categories,
       });
     }
+    if (!obj["Estabelecimento"]) continue;
+
     obj["Tipo"] = "Xp";
 
     result.push(obj);
   }
 
-  // Analyze which month has the highest data
+  formatParcelaDate(result);
+
+  return result;
+}
+
+const formatValues = ({
+  json,
+  type,
+  value,
+  categories,
+}: {
+  json: Record<string, any>;
+  type: string;
+  value: string;
+  categories: ICategory[];
+}) => {
+  if (type === "Estabelecimento" && value) {
+    if (value === "Pagamentos Validos Normais") {
+      return;
+    }
+
+    const category = getCategory(value, categories);
+
+    json["Categoria"] = category;
+    json["Estabelecimento"] = value;
+  }
+
+  if (type === "Valor" && value) {
+    const valueNumber =
+      Number(value.replace("R$ ", "").replace(".", "").replace(",", ".")) * -1;
+    json[type] = valueNumber;
+    return;
+  }
+
+  json[type] = value;
+};
+
+const formatParcelaDate = (result: any[]) => {
   const monthlyStats = result.reduce(
     (acc, item) => {
       if (!item.Data || !item.Valor) return acc;
 
-      const monthKey = item.Data.substring(3, 5); // MM format
+      const key = item.Data.substring(3, 5); // MM format
 
-      if (!acc[monthKey]) {
-        acc[monthKey] = 0;
+      if (!acc[key]) {
+        acc[key] = 0;
       }
 
-      acc[monthKey] += 1;
+      acc[key] += 1;
 
       return acc;
     },
     {} as Record<string, number>,
   );
 
-  // Find month with highest total value
+  const yearlyStats = result.reduce(
+    (acc, item) => {
+      if (!item.Data || !item.Valor) return acc;
+
+      const key = item.Data.substring(6, 10); // YYYY format
+
+      if (!acc[key]) {
+        acc[key] = 0;
+      }
+
+      acc[key] += 1;
+
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
+
   let highestMonth = "";
   let highestValue = 0;
 
@@ -59,48 +120,25 @@ export function formatXpCSV(csv: string) {
     }
   });
 
-  const formattedResult = result
-    .filter((item) => item.Estabelecimento)
-    .map((item) => {
-      if (item.Parcela !== "-") {
-        const [day, _month, year] = item.Data.split("/");
+  let highestYear = "";
+  let highestYearValue = 0;
 
-        return {
-          ...item,
-          Data: `${day}/${highestMonth}/${year}`,
-        };
-      }
+  Object.entries(yearlyStats).forEach((data) => {
+    const [year, total] = data as [string, number];
 
-      return item;
-    });
-
-  return formattedResult;
-}
-
-const formatValues = ({
-  json,
-  type,
-  value,
-}: {
-  json: Record<string, any>;
-  type: string;
-  value: string;
-}) => {
-  if (type === "Estabelecimento" && value) {
-    if (value === "Pagamentos Validos Normais") {
-      return;
+    if (total > highestYearValue) {
+      highestYearValue = total;
+      highestYear = year;
     }
+  });
 
-    json["Categoria"] = "";
-    json["Estabelecimento"] = value;
+  const index = result.findIndex((item) => item.Parcela !== "-");
+
+  if (index !== -1) {
+    const [day, _month, _year] = result[index].Data.split("/");
+
+    result[index]["Data"] = `${day}/${highestMonth}/${highestYear}`;
   }
 
-  if (type === "Valor" && value) {
-    const valueNumber =
-      Number(value.replace("R$ ", "").replace(".", "").replace(",", ".")) * -1;
-    json[type] = valueNumber;
-    return;
-  }
-
-  json[type] = value;
+  return result;
 };

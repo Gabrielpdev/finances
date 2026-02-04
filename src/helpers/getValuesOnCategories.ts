@@ -1,54 +1,30 @@
 "use client";
 
-import { ICategory, IFormattedData } from "@/types/data";
+import { IFormattedData } from "@/types/data";
 
-const COLORS = [
-  "#0088FE",
-  "#00C49F",
-  "#FFBB28",
-  "#FF8042",
-  "#AF19FF",
-  "#FF4560",
-  "#00E396",
-  "#775DD0",
-];
+export const groupCategories = (data: IFormattedData[]) => {
+  const result: { name: string; value: number; fill: string }[] = [];
+  let totalByCategories: Record<string, { value: number; fill: string }> = {
+    Outros: { value: 0, fill: "#FFFFFF" },
+  };
 
-export const groupCategories = (
-  data: IFormattedData[],
-  categories: ICategory[],
-) => {
-  const result = [];
-  let totalByCategories: Record<string, number> = {};
+  data.forEach((item) => {
+    if (item.Categoria.name === "Salario") return;
 
-  for (const category of categories) {
-    data.forEach((item) => {
-      if (!totalByCategories[category.name]) {
-        totalByCategories[category.name] = 0;
-      }
+    totalByCategories[item.Categoria.name] = {
+      value:
+        (totalByCategories[item.Categoria.name]?.value ?? 0) +
+        Number(item.Valor) * -1,
+      fill: item.Categoria.color,
+    };
+  });
 
-      if (item.Categoria.name === category.name) {
-        totalByCategories[category.name] += Number(item.Valor) * -1;
-      }
-
-      if (item.Categoria.name === "Outros") {
-        totalByCategories[`Outros`] =
-          (totalByCategories[`Outros`] || 0) + Number(item.Valor) * -1;
-      }
+  Object.entries(totalByCategories).forEach(([key, value]) => {
+    result.push({
+      name: key,
+      value: Math.ceil(value.value),
+      fill: value.fill,
     });
-
-    if (category.name !== "Salario") {
-      result.push({
-        name: category.name,
-        value: Math.ceil(totalByCategories[category.name] || 0),
-        fill: COLORS[categories.indexOf(category) % COLORS.length],
-      });
-    }
-  }
-
-  result.push({
-    name: `Outros`,
-    value: Math.ceil(totalByCategories[`Outros`] || 0),
-    fill: COLORS[categories.length % COLORS.length],
   });
 
   return result;

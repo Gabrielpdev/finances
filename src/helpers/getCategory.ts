@@ -4,16 +4,18 @@ import { ICategory } from "@/types/data";
 
 export const getCategory = (value: string, categories: ICategory[]) => {
   const found = categories.find((category: ICategory) =>
-    category.list.some((item) => value.includes(item)),
+    category.list.some((item) => {
+      return value.toLocaleLowerCase().includes(item.toLocaleLowerCase());
+    }),
   );
 
   return found
-    ? {
-        name: found.name,
-        icon: found.icon,
-      }
+    ? found
     : {
         name: "Outros",
         icon: "",
+        id: "others",
+        list: [],
+        color: "#0088FE",
       };
 };

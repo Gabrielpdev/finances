@@ -1,12 +1,12 @@
-import { IData, IFormattedData, IShowedData } from "@/types/data";
+import { IData, IFormattedData } from "@/types/data";
 import { TableValue } from "../elements/tableValue";
 import { PiXCircleLight } from "react-icons/pi";
 import { header } from "@/constants/tableHeader";
 
 export interface DataTableProps {
-  item: IData;
-  selectedItemToExclude: string[];
-  setSelectedItemToExclude: React.Dispatch<React.SetStateAction<string[]>>;
+  item: IFormattedData;
+  selectedItemToExclude?: string[];
+  setSelectedItemToExclude?: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 export function DataTable({
@@ -15,6 +15,8 @@ export function DataTable({
   setSelectedItemToExclude,
 }: DataTableProps) {
   const onSelectItemToExclude = (itemId: string) => {
+    if (!selectedItemToExclude || !setSelectedItemToExclude) return;
+
     const updatedExcludedItems = [...selectedItemToExclude];
 
     if (updatedExcludedItems.includes(itemId)) {
@@ -30,7 +32,7 @@ export function DataTable({
   return (
     <div
       className={`grid grid-cols-[repeat(40,_minmax(0,_1fr))] text-center bg-white p-5 pr-1 rounded-md w-full ${
-        selectedItemToExclude.includes(item.Identificador) ? "opacity-60" : ""
+        selectedItemToExclude?.includes(item.Identificador) ? "opacity-60" : ""
       } max-sm:flex max-sm:flex-wrap max-sm:justify-center max-sm:relative max-sm:p-0 max-sm:py-5 max-sm:pl-5`}
     >
       {header.map((headerItem) => (
@@ -45,12 +47,14 @@ export function DataTable({
           <TableValue item={item} type={headerItem as keyof IData} />
         </div>
       ))}
-      <button
-        onClick={() => onSelectItemToExclude(item.Identificador)}
-        className={`flex items-center justify-center flex-col col-span-1 max-sm:px-2 max-sm:absolute max-sm:top-1/2 max-sm:-translate-y-1/2 max-sm:left-1 max-sm:text-2xl`}
-      >
-        <PiXCircleLight />
-      </button>
+      {!!setSelectedItemToExclude && (
+        <button
+          onClick={() => onSelectItemToExclude(item.Identificador)}
+          className={`flex items-center justify-center flex-col col-span-1 max-sm:px-2 max-sm:absolute max-sm:top-1/2 max-sm:-translate-y-1/2 max-sm:left-1 max-sm:text-2xl`}
+        >
+          <PiXCircleLight />
+        </button>
+      )}
     </div>
   );
 }

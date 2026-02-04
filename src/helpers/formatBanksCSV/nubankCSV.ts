@@ -1,4 +1,7 @@
-export function formatNubankCSV(csv: string) {
+import { ICategory } from "@/types/data";
+import { getCategory } from "../getCategory";
+
+export function formatNubankCSV(csv: string, categories: ICategory[]) {
   const lines = csv.split("\n");
 
   const result = [];
@@ -18,6 +21,7 @@ export function formatNubankCSV(csv: string) {
         json: obj,
         type: formattedHeaders[j],
         value: currentLine[j],
+        categories,
       });
     }
     obj["Tipo"] = "Nubank";
@@ -31,10 +35,12 @@ const formatValues = ({
   json,
   type,
   value,
+  categories,
 }: {
   json: Record<string, any>;
   type: string;
   value: string;
+  categories: ICategory[];
 }) => {
   if (type === "Estabelecimento" && value) {
     if (value.includes("Transferência")) {
@@ -53,7 +59,9 @@ const formatValues = ({
       return;
     }
 
-    json["Categoria"] = "";
+    const category = getCategory(value, categories);
+
+    json["Categoria"] = category;
   }
 
   if (type === "Valor" && value) {

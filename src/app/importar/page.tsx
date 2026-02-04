@@ -1,7 +1,7 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useContext } from "react";
 
-import { IData } from "@/types/data";
+import { IFormattedData } from "@/types/data";
 
 import { useRouter } from "next/navigation";
 import { checkBankType } from "@/utils/checkBankType";
@@ -11,18 +11,19 @@ import { formatMercadoPagoCSV } from "@/helpers/formatBanksCSV/mercadoPagoCSV";
 import { DataTable } from "@/components/modules/dataTable";
 import { HeaderTable } from "@/components/modules/headerTable";
 import { createData } from "../actions/data/create";
-import { listDatas } from "../actions/data/list";
+import { TransactionsContext } from "@/providers/transactions";
 
 export default function Import() {
   const { push } = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // const { user } = useContext(UserContext);
-
-  const [json, setJson] = useState<IData[]>([]);
+  const [json, setJson] = useState<IFormattedData[]>([]);
   const [selectedToDelete, setSelectedToDelete] = useState<string[]>([]);
 
   const [loading, setLoading] = useState(false);
+
+  const { transactions, categories, refreshTransactions } =
+    useContext(TransactionsContext);
 
   const handleFileChange = (e: any) => {
     e.preventDefault();
@@ -33,7 +34,7 @@ export default function Import() {
         const reader = new FileReader();
         reader.onload = function (e) {
           const content = e?.target?.result as string;
-          const json = csvJSON(content) as IData[];
+          const json = csvJSON(content);
 
           setJson(json);
         };
@@ -43,35 +44,36 @@ export default function Import() {
   };
 
   const csvJSON = (csv?: string) => {
-    if (!csv) return console.error("CSV is empty");
+    if (!csv) {
+      console.error("CSV is empty");
+      return [];
+    }
 
     const bankType = checkBankType(csv);
-    let formattedData: IData[] = [];
+    let formattedData: IFormattedData[] = [];
 
     if (bankType === "mercadoPago") {
-      formattedData = formatMercadoPagoCSV(csv);
+      formattedData = formatMercadoPagoCSV(csv, categories);
     }
 
     if (bankType === "nubank") {
-      formattedData = formatNubankCSV(csv);
+      formattedData = formatNubankCSV(csv, categories);
     }
 
     if (bankType === "xp") {
-      formattedData = formatXpCSV(csv);
+      formattedData = formatXpCSV(csv, categories);
     }
 
     return formattedData;
   };
 
-  const filteredData = (json: IData[]) => {
+  const filteredData = (json: IFormattedData[]) => {
     const filtered = json?.filter((item: any) => {
-      const local = item["Estabelecimento"];
-
       const removed = selectedToDelete.some(
         (selected) => selected === item["Identificador"],
       );
 
-      return !!local && !removed;
+      return !removed;
     });
 
     return filtered;
@@ -80,10 +82,8 @@ export default function Import() {
   const handleSaveJSON = async () => {
     setLoading(true);
     try {
-      const savedData = await listDatas();
-
       const removedDuplicates = json.filter((savedItem) => {
-        return !savedData.some(
+        return !transactions.some(
           (newItem) => newItem["Identificador"] === savedItem["Identificador"],
         );
       });
@@ -91,6 +91,7 @@ export default function Import() {
 
       if (filtered.length > 0) {
         await createData(filtered);
+        await refreshTransactions();
       }
 
       setJson([]);

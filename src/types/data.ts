@@ -12,10 +12,7 @@ export interface IFormattedData {
   Estabelecimento: string;
   Parcela: string;
   Portador: string;
-  Categoria: {
-    name: string;
-    icon: string;
-  };
+  Categoria: ICategory;
   Valor: string;
   Tipo: string;
   Identificador: string;
@@ -25,6 +22,7 @@ export interface ICategory {
   id: string;
   list: string[];
   name: string;
+  color: string;
 }
 
 export interface IShowedData {
@@ -57,4 +55,7 @@ export interface ITransactionsContext {
   setCategories: (categories: ICategory[]) => void;
   transactions: IFormattedData[];
   setTransactions: (transactions: IFormattedData[]) => void;
+  refreshTransactions: () => Promise<void>;
+  refreshCategories: () => Promise<void>;
+  updateLocalTransactions: () => void;
 }

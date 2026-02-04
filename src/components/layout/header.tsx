@@ -22,12 +22,12 @@ export default function Header() {
             <Image src="/logo.svg" alt="logo" width={175} height={25} />
           </Link>
 
-          <div className="flex text-white gap-8 ">
+          <div className="flex text-white gap-8 max-md:text-sm ">
             <Link href="/dashboard" className="flex">
               Dashboard
             </Link>
             <Link href="/home" className="flex">
-              Listagem
+              Transações
             </Link>
             <Link href="/categorias" className="flex">
               Categorias

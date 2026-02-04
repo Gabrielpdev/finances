@@ -19,7 +19,7 @@ const SimpleHorizontalBarChart = ({ data }: IBarChartProps) => {
           key={entry.name}
           className="grid grid-cols-4 gap-4 items-center mb-2"
         >
-          <span className="ml-2 font-medium">{entry.name}:</span>
+          <span className="ml-2 font-medium max-sm:text-sm">{entry.name}:</span>
 
           <div className="flex-1 col-span-2 w-full h-6 bg-gray-200 rounded-md overflow-hidden relative">
             <div
@@ -31,7 +31,7 @@ const SimpleHorizontalBarChart = ({ data }: IBarChartProps) => {
             ></div>
           </div>
 
-          <span className="">
+          <span className="max-sm:text-sm">
             {((entry.value / totalValue) * 100).toFixed(2)}%
           </span>
         </div>

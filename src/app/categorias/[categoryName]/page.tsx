@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef, useContext } from "react";
+import { useState, useEffect, useRef, useContext, useCallback } from "react";
 
 import { Loading } from "@/components/loading";
 import { useParams } from "next/navigation";
@@ -23,7 +23,7 @@ export default function CategoryName() {
 
   const { setCategories, categories } = useContext(TransactionsContext);
 
-  const readJsonFile = async () => {
+  const readJsonFile = useCallback(async () => {
     setLoading(true);
     try {
       const filtered = categories.find(
@@ -36,7 +36,7 @@ export default function CategoryName() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.categoryName, categories]);
 
   const handleSaveNewValueOnList = async () => {
     if (inputRef?.current?.value && selectedCategory) {
@@ -81,14 +81,14 @@ export default function CategoryName() {
   const handleDeleteValueOnList = async (name: string) => {
     if (!confirm("Tem certeza que deseja deletar este item?")) return;
 
-    if (inputRef?.current?.value && selectedCategory) {
-      const value = inputRef.current.value;
+    if (selectedCategory) {
+      const newList = selectedCategory.list.filter((item) => item !== name);
 
       await updateCategories({
         id: selectedCategory.id,
         data: {
           ...selectedCategory,
-          list: selectedCategory.list.filter((item) => item !== name),
+          list: newList,
         },
       });
 
@@ -97,24 +97,18 @@ export default function CategoryName() {
           category.name.toLocaleLowerCase() ===
           selectedCategory?.name.toLocaleLowerCase()
         ) {
-          if (category.list.includes(value)) {
-            toast.error("Valor já existe na lista");
-            return category;
-          }
-
           return {
             ...category,
-            list: [...category.list, value],
+            list: newList,
           };
         }
-
         return category;
       });
 
       setCategories(newCategories);
       setSelectedCategory({
         ...selectedCategory,
-        list: selectedCategory.list.filter((item) => item !== name),
+        list: newList,
       });
       setAddField(false);
     }
@@ -122,7 +116,7 @@ export default function CategoryName() {
 
   useEffect(() => {
     readJsonFile();
-  }, []);
+  }, [readJsonFile]);
 
   return (
     <div className="flex max-w-6xl w-full flex-col m-auto">

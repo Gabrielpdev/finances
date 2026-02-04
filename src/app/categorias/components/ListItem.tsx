@@ -11,6 +11,7 @@ interface CategoryProps {
   category: ICategory;
   inputNameRef: RefObject<HTMLInputElement>;
   inputIconRef: RefObject<HTMLInputElement>;
+  inputColorRef: RefObject<HTMLInputElement>;
   className?: string;
 }
 
@@ -19,6 +20,7 @@ export default function ListItem({
   category,
   inputIconRef,
   inputNameRef,
+  inputColorRef,
   className,
 }: CategoryProps) {
   const { push } = useRouter();
@@ -30,12 +32,17 @@ export default function ListItem({
   if (isEditing === category.id) {
     return (
       <div
-        className={`grid grid-cols-10 text-center bg-white p-5 rounded-md w-full ${className}`}
+        className={`grid grid-cols-12 text-center bg-white p-5 rounded-md w-full ${className}`}
       >
         <input
           ref={inputNameRef}
           defaultValue={category.name}
           className={`w-full flex capitalize col-span-8 border-r-2 text-blue-950`}
+        />
+        <input
+          ref={inputColorRef}
+          defaultValue={category.color}
+          className={`w-full flex items-center col-span-2 capitalize justify-center border-r-2 text-blue-950 text-center`}
         />
         <input
           ref={inputIconRef}
@@ -49,7 +56,8 @@ export default function ListItem({
   return (
     <button
       onClick={() => handleSelectCategory(category.name)}
-      className={`grid grid-cols-10 text-center bg-white p-5 rounded-md w-full  ${className}`}
+      className={`grid grid-cols-10 text-center p-5 rounded-md w-full ${className}`}
+      style={{ backgroundColor: category?.color || "#FFFFFF" }}
     >
       <span
         className={`w-full flex items-center capitalize  col-span-9 border-r-2 text-blue-950 text-xl`}

@@ -1,8 +1,17 @@
 "use client";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  MouseHandlerDataParam,
+} from "recharts";
 
 export interface IBarChartProps {
   data: IBarChartData[];
+  onSelectBar: (category: MouseHandlerDataParam) => void;
 }
 
 export interface IBarChartData {
@@ -45,13 +54,14 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
   return null;
 };
 
-const SimpleBarChart = ({ data }: IBarChartProps) => {
+const SimpleBarChart = ({ data, onSelectBar }: IBarChartProps) => {
   return (
     <BarChart
       style={{
         width: "100%",
         maxHeight: "70vh",
         aspectRatio: 1.618,
+        padding: "10px",
       }}
       responsive
       data={data}
@@ -61,20 +71,13 @@ const SimpleBarChart = ({ data }: IBarChartProps) => {
         left: 0,
         bottom: 5,
       }}
-      onClick={(props) => console.log(props)}
+      onClick={(props) => onSelectBar(props)}
     >
       <CartesianGrid strokeDasharray="3 3" />
       <XAxis dataKey="name" />
       <YAxis dataKey="value" />
       <Tooltip content={<CustomTooltip />} />
-      <Bar
-        dataKey="value"
-        fill="#8884d8"
-        radius={[10, 10, 0, 0]}
-        // onClick={(data, index) => {
-        //   console.log("Bar clicked", data, index);
-        // }}
-      />
+      <Bar dataKey="value" fill="#8884d8" radius={[10, 10, 0, 0]} />
     </BarChart>
   );
 };
