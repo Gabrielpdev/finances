@@ -52,7 +52,9 @@ export interface ICurrencyContext {
   setValue: (value: { in: string; out: string }) => void;
 }
 
-export interface ICategoriesContext {
+export interface ITransactionsContext {
   categories: ICategory[];
   setCategories: (categories: ICategory[]) => void;
+  transactions: IFormattedData[];
+  setTransactions: (transactions: IFormattedData[]) => void;
 }

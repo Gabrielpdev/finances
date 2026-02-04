@@ -3,14 +3,14 @@
 import { ICategory } from "@/types/data";
 
 export const getCategory = (value: string, categories: ICategory[]) => {
-  const fined = categories.find((category: ICategory) =>
+  const found = categories.find((category: ICategory) =>
     category.list.some((item) => value.includes(item)),
   );
 
-  return fined
+  return found
     ? {
-        name: fined.name,
-        icon: fined.icon,
+        name: found.name,
+        icon: found.icon,
       }
     : {
         name: "Outros",

@@ -5,9 +5,9 @@ import { Loading } from "@/components/loading";
 import { useParams } from "next/navigation";
 import { ICategory } from "@/types/data";
 import { PiPlusCircleDuotone, PiTrashSimpleDuotone } from "react-icons/pi";
-import { CategoriesContext } from "@/providers/categories";
 import { toast } from "react-toastify";
 import { updateCategories } from "@/app/actions/categories/update";
+import { TransactionsContext } from "@/providers/transactions";
 
 export default function CategoryName() {
   const params = useParams();
@@ -21,7 +21,7 @@ export default function CategoryName() {
   const [loading, setLoading] = useState(true);
   const [addField, setAddField] = useState(false);
 
-  const { setCategories, categories } = useContext(CategoriesContext);
+  const { setCategories, categories } = useContext(TransactionsContext);
 
   const readJsonFile = async () => {
     setLoading(true);

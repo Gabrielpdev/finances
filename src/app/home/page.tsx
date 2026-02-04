@@ -11,17 +11,14 @@ import { groupByMonths } from "@/helpers/groupByMonths";
 import { DataTable } from "@/components/modules/dataTable";
 import { HeaderTable } from "@/components/modules/headerTable";
 
-import { listDatas } from "../actions/data/list";
-import { listCategories } from "../actions/categories/list";
-import { CategoriesContext } from "@/providers/categories";
 import { getCategory } from "@/helpers/getCategory";
 
 import MultiSelect from "@/components/elements/multiSelect";
 import Select from "@/components/elements/select";
+import { TransactionsContext } from "@/providers/transactions";
 
 export default function Home() {
   const [showedData, setShowedData] = useState<IShowedData>({});
-  const [rawData, setRawData] = useState<IData[]>([]);
 
   const [loading, setLoading] = useState(true);
 
@@ -40,7 +37,7 @@ export default function Home() {
   );
 
   const { setValue } = useContext(CurrencyContext);
-  const { setCategories, categories } = useContext(CategoriesContext);
+  const { transactions, categories } = useContext(TransactionsContext);
 
   const removeCreditDatas = useCallback(
     async (data: IData[], savedCategories: ICategory[]) => {
@@ -73,7 +70,6 @@ export default function Home() {
         const grouped = groupByMonths(data, savedCategories);
 
         setShowedData(grouped);
-        setCategories(savedCategories);
       } catch (error) {
         console.error("Error:", error);
       }
@@ -84,17 +80,13 @@ export default function Home() {
   const readJsonFile = useCallback(async () => {
     setLoading(true);
     try {
-      const savedData = await listDatas();
-      const savedCategories = await listCategories();
-
-      setRawData(savedData);
-      removeCreditDatas(savedData, savedCategories);
+      removeCreditDatas(transactions, categories);
     } catch (error) {
       console.error("Error:", error);
     } finally {
       setLoading(false);
     }
-  }, [removeCreditDatas]);
+  }, [transactions, categories, removeCreditDatas]);
 
   useEffect(() => {
     readJsonFile();
@@ -104,7 +96,7 @@ export default function Home() {
     let inTotal = 0;
     let outTotal = 0;
 
-    for (const item of rawData) {
+    for (const item of transactions) {
       if (selectedFilterDate.length !== 0) {
         const date = formatToDate(item);
         const itemMonth = `${months[date.getMonth()]}-${date.getFullYear()}`;
@@ -148,7 +140,7 @@ export default function Home() {
       }),
     });
   }, [
-    rawData,
+    transactions,
     categories,
     selectedFilterDate,
     selectedFilterType,

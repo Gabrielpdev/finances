@@ -4,6 +4,7 @@ import { db } from "@/lib/firebase-admin";
 
 import { IData } from "@/types/data";
 import { checkUserToken } from "../checkUserToken";
+import { revalidateTag } from "next/cache";
 
 export async function createData(data: IData[]) {
   try {
@@ -12,6 +13,8 @@ export async function createData(data: IData[]) {
     await db.collection("data").add({
       data,
     });
+
+    revalidateTag("data-list");
   } catch (error) {
     console.error("Error creating data:", error);
     throw error;

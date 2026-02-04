@@ -19,7 +19,7 @@ export const listDatas = unstable_cache(
         });
       });
 
-      return dataList;
+      return JSON.parse(JSON.stringify(dataList));
     } catch (error) {
       console.error("Error fetching data:", error);
       throw error;

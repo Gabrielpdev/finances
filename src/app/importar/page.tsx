@@ -95,7 +95,7 @@ export default function Import() {
 
       setJson([]);
       fileRef.current!.value = "";
-      push("/home");
+      push("/dashboard");
     } catch (error) {
       console.error("Error:", error);
     } finally {

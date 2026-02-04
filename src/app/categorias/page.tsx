@@ -4,18 +4,17 @@ import * as Icons from "react-icons/pi";
 
 import { v4 } from "uuid";
 import ListItem from "./components/ListItem";
-import { CategoriesContext } from "@/providers/categories";
 import { deleteCategories } from "../actions/categories/delete";
 import { updateCategories } from "../actions/categories/update";
 import { ICategory } from "@/types/data";
 import { createCategories } from "../actions/categories/create";
-
+import { TransactionsContext } from "@/providers/transactions";
 
 export default function Category() {
   const inputNameRef = useRef<HTMLInputElement>(null);
   const inputIconRef = useRef<HTMLInputElement>(null);
 
-  const { setCategories, categories } = useContext(CategoriesContext);
+  const { setCategories, categories } = useContext(TransactionsContext);
 
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);

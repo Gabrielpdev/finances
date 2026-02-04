@@ -4,6 +4,7 @@ import { db } from "@/lib/firebase-admin";
 
 import { ICategory } from "@/types/data";
 import { checkUserToken } from "../checkUserToken";
+import { revalidateTag } from "next/cache";
 
 interface UpdateCategoriesParams {
   id: string;
@@ -21,6 +22,8 @@ export async function updateCategories({ id, data }: UpdateCategoriesParams) {
         ...data,
         updatedAt: new Date(),
       });
+
+    revalidateTag("categories-list");
   } catch (error) {
     console.error("Error creating categories:", error);
     throw error;

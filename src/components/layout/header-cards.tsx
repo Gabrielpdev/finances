@@ -6,8 +6,7 @@ import { CurrencyContext } from "@/providers/currency";
 import { PiFloppyDisk } from "react-icons/pi";
 import { toast } from "react-toastify";
 import { createCategories } from "@/app/actions/categories/create";
-import { LOCAL_STORAGE_KEY } from "@/constants/keys";
-import { CategoriesContext } from "@/providers/categories";
+import { TransactionsContext } from "@/providers/transactions";
 
 export default function HeaderDescription() {
   const path = usePathname();
@@ -15,14 +14,14 @@ export default function HeaderDescription() {
   const { back, push } = useRouter();
 
   const { value } = useContext(CurrencyContext);
-  const { categories } = useContext(CategoriesContext);
+  const { categories } = useContext(TransactionsContext);
 
   async function handleSaveCategory() {
     for (const category of categories) {
       await createCategories(category);
     }
     toast.success("Categorias salvas com sucesso!");
-    push("/home");
+    push("/dashboard");
   }
 
   if (path === "/home")

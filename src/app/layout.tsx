@@ -4,11 +4,11 @@ import { ToastContainer } from "react-toastify";
 
 import FirebaseProvider from "@/providers/firebase";
 import CurrencyProvider from "@/providers/currency";
-import CategoriesProvider from "@/providers/categories";
 
 import Header from "@/components/layout/header";
 
 import "./globals.css";
+import TransactionsProvider from "@/providers/transactions";
 
 const inter = Poppins({ subsets: ["latin"], weight: "400" });
 
@@ -29,14 +29,14 @@ export default function RootLayout({
       <body className={inter.className}>
         <FirebaseProvider>
           <CurrencyProvider>
-            <CategoriesProvider>
+            <TransactionsProvider>
               <div className="bg-neutral-200 min-h-screen h-full pb-4 overflow-hidden">
                 <ToastContainer />
                 <Header />
 
                 {children}
               </div>
-            </CategoriesProvider>
+            </TransactionsProvider>
           </CurrencyProvider>
         </FirebaseProvider>
       </body>

@@ -1,16 +1,16 @@
 import PiIcons from "@/components/elements/icons";
 import { getCategory } from "@/helpers/getCategory";
-import { CategoriesContext } from "@/providers/categories";
-import { IFormattedData } from "@/types/data";
+import { TransactionsContext } from "@/providers/transactions";
+import { IData, IFormattedData } from "@/types/data";
 import { useContext } from "react";
 
 interface TableValueProps {
-  item: IFormattedData;
-  type: keyof IFormattedData;
+  item: IData;
+  type: string;
 }
 
-export const getColor = (item: IFormattedData, type: keyof IFormattedData) => {
-  const value = item[type];
+export const getColor = (item: IData, type: string) => {
+  const value = item[type as keyof IData];
 
   if (type === "Valor") {
     if (Number(value) < 0) return "text-red-500";
@@ -21,13 +21,13 @@ export const getColor = (item: IFormattedData, type: keyof IFormattedData) => {
 };
 
 export const TableValue = ({ item, type }: TableValueProps) => {
-  const { categories } = useContext(CategoriesContext);
+  const { categories } = useContext(TransactionsContext);
 
   const className = `w-full flex gap-1 items-center capitalize justify-center border-r-2 ${getColor(
     item,
     type,
   )} max-sm:px-2`;
-  const value = item[type as keyof IFormattedData];
+  const value = item[type as keyof IData];
 
   // if (!value) return;
 

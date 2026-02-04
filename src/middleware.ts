@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { LOCAL_STORAGE_KEY } from "./constants/keys";
 
-const PROTECTED_PATHS = ["/home", "/categorias", "/importar"];
+const PROTECTED_PATHS = ["/home", "/dashboard", "/categorias", "/importar"];
 
 export default function middleware(req: NextRequest) {
   const session = req.cookies.get(`${LOCAL_STORAGE_KEY}_session`);
@@ -16,11 +16,11 @@ export default function middleware(req: NextRequest) {
   }
 
   if ((pathname === "/login" || pathname === "/not-allowed") && session) {
-    return NextResponse.redirect(new URL("/home", req.url));
+    return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
   if (session && pathname === "/") {
-    return NextResponse.redirect(new URL("/home", req.url));
+    return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
   return NextResponse.next();

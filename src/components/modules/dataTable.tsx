@@ -4,7 +4,7 @@ import { PiXCircleLight } from "react-icons/pi";
 import { header } from "@/constants/tableHeader";
 
 export interface DataTableProps {
-  item: IFormattedData;
+  item: IData;
   selectedItemToExclude: string[];
   setSelectedItemToExclude: React.Dispatch<React.SetStateAction<string[]>>;
 }

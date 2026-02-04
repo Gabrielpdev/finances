@@ -8,6 +8,7 @@ import { unstable_cache } from "next/cache";
 export const listCategories = unstable_cache(
   async () => {
     try {
+      console.log("Fetching categories from Firestore...");
       await checkUserToken();
 
       const snapshot = await db.collection("categories").get();
@@ -20,7 +21,7 @@ export const listCategories = unstable_cache(
         dataList.push({ ...data, id: doc.id });
       });
 
-      return dataList;
+      return JSON.parse(JSON.stringify(dataList));
     } catch (error) {
       console.error("Error fetching categories:", error);
       throw error;
