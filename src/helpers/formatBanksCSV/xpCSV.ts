@@ -1,5 +1,6 @@
-import { ICategory } from "@/types/data";
+import { ICategory, IData } from "@/types/data";
 import { getCategory } from "../getCategory";
+import { createHash } from "crypto";
 
 export function formatXpCSV(csv: string, categories: ICategory[]) {
   const lines = csv.split("\r\n");
@@ -13,14 +14,13 @@ export function formatXpCSV(csv: string, categories: ICategory[]) {
   });
 
   for (var i = 1; i < lines.length; i++) {
-    var obj = {} as any;
+    var obj = {} as IData;
     var currentLine = lines[i].split(";");
 
     if (!currentLine[0]) continue;
 
     for (var j = 0; j < formattedHeaders.length; j++) {
-      obj["Identificador"] =
-        `${currentLine[0]}-${currentLine[1]}-${currentLine[2]}-${currentLine[3]}-${currentLine[4]}`;
+      obj.id = generateId(currentLine);
 
       formatValues({
         json: obj,
@@ -29,9 +29,9 @@ export function formatXpCSV(csv: string, categories: ICategory[]) {
         categories,
       });
     }
-    if (!obj["Estabelecimento"]) continue;
+    if (!obj.description) continue;
 
-    obj["Tipo"] = "Xp";
+    obj.type = "Xp";
 
     result.push(obj);
   }
@@ -41,13 +41,18 @@ export function formatXpCSV(csv: string, categories: ICategory[]) {
   return result;
 }
 
+function generateId(currentLine: string[]) {
+  const str = `${currentLine[0]}-${currentLine[1]}-${currentLine[2]}-${currentLine[3]}-${currentLine[4]}`;
+  return createHash("md5").update(str).digest("hex");
+}
+
 const formatValues = ({
   json,
   type,
   value,
   categories,
 }: {
-  json: Record<string, any>;
+  json: IData;
   type: string;
   value: string;
   categories: ICategory[];
@@ -59,26 +64,36 @@ const formatValues = ({
 
     const category = getCategory(value, categories);
 
-    json["Categoria"] = category;
-    json["Estabelecimento"] = value;
+    json.categoryId = category.id;
+    json.description = value;
   }
 
   if (type === "Valor" && value) {
     const valueNumber =
       Number(value.replace("R$ ", "").replace(".", "").replace(",", ".")) * -1;
-    json[type] = valueNumber;
+    json.amount = valueNumber;
     return;
   }
 
-  json[type] = value;
+  if (type === "Data" && value) {
+    json.date = value;
+  }
+
+  if (type === "Parcela" && value) {
+    json.installment = value;
+  }
+
+  if (type === "Portador" && value) {
+    json.holder = value;
+  }
 };
 
-const formatParcelaDate = (result: any[]) => {
+const formatParcelaDate = (result: IData[]) => {
   const monthlyStats = result.reduce(
     (acc, item) => {
-      if (!item.Data || !item.Valor) return acc;
+      if (!item.date || !item.amount) return acc;
 
-      const key = item.Data.substring(3, 5); // MM format
+      const key = item.date.substring(3, 5); // MM format
 
       if (!acc[key]) {
         acc[key] = 0;
@@ -93,9 +108,9 @@ const formatParcelaDate = (result: any[]) => {
 
   const yearlyStats = result.reduce(
     (acc, item) => {
-      if (!item.Data || !item.Valor) return acc;
+      if (!item.date || !item.amount) return acc;
 
-      const key = item.Data.substring(6, 10); // YYYY format
+      const key = item.date.substring(6, 10); // YYYY format
 
       if (!acc[key]) {
         acc[key] = 0;
@@ -132,12 +147,12 @@ const formatParcelaDate = (result: any[]) => {
     }
   });
 
-  const index = result.findIndex((item) => item.Parcela !== "-");
+  const index = result.findIndex((item) => item.installment !== "-");
 
   if (index !== -1) {
-    const [day, _month, _year] = result[index].Data.split("/");
+    const [day, _month, _year] = result[index].date.split("/");
 
-    result[index]["Data"] = `${day}/${highestMonth}/${highestYear}`;
+    result[index].date = `${day}/${highestMonth}/${highestYear}`;
   }
 
   return result;

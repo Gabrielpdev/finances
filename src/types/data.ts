@@ -1,21 +1,16 @@
 export interface IData {
-  Data: string;
-  Estabelecimento: string;
-  Parcela: string;
-  Portador: string;
-  Valor: string;
-  Tipo: string;
-  Identificador: string;
+  date: string;
+  description: string;
+  installment: string;
+  holder: string;
+  amount: number;
+  type: string;
+  id: string;
+  timestamp: number;
+  categoryId: string;
 }
-export interface IFormattedData {
-  Data: string;
-  Estabelecimento: string;
-  Parcela: string;
-  Portador: string;
-  Categoria: ICategory;
-  Valor: string;
-  Tipo: string;
-  Identificador: string;
+export interface IFormattedData extends IData {
+  category: ICategory;
 }
 export interface ICategory {
   icon: string;
@@ -58,4 +53,8 @@ export interface ITransactionsContext {
   refreshTransactions: () => Promise<void>;
   refreshCategories: () => Promise<void>;
   updateLocalTransactions: () => void;
+  returnTransactionWithCategories: (
+    savedData: IData[] | IFormattedData[],
+    savedCategories: ICategory[],
+  ) => IFormattedData[];
 }

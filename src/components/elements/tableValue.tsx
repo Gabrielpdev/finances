@@ -6,11 +6,9 @@ interface TableValueProps {
   type: string;
 }
 
-export const getColor = (item: IData, type: string) => {
-  const value = item[type as keyof IData];
-
+export const getColor = (item: IFormattedData, type: string) => {
   if (type === "Valor") {
-    if (Number(value) < 0) return "text-red-500";
+    if (Number(item.amount) < 0) return "text-red-500";
 
     return "text-green-600";
   }
@@ -22,24 +20,23 @@ export const TableValue = ({ item, type }: TableValueProps) => {
     item,
     type,
   )} max-sm:px-2`;
-  const value = item[type as keyof IData];
 
   if (type === "Estabelecimento") {
     const establishmentClassName = `w-full flex items-center capitalize border-r-2 text-blue-950 max-sm:px-2 max-sm:w-full max-sm:justify-center`;
 
-    if (item["Parcela"]) {
-      const parcelaFormatted = `${value} ${
-        item["Parcela"] !== "-" ? `(${item["Parcela"]})` : ""
+    if (item.installment) {
+      const parcelaFormatted = `${item.description} ${
+        item.installment !== "-" ? `(${item.installment})` : ""
       }`;
 
       return <span className={establishmentClassName}>{parcelaFormatted}</span>;
     }
 
-    return <span className={establishmentClassName}>{value.toString()}</span>;
+    return <span className={establishmentClassName}>{item.description}</span>;
   }
 
   if (type === "Valor") {
-    const currencyValue = Number(value).toLocaleString("pt-BR", {
+    const currencyValue = Number(item.amount).toLocaleString("pt-BR", {
       style: "currency",
       currency: "BRL",
     });
@@ -52,10 +49,14 @@ export const TableValue = ({ item, type }: TableValueProps) => {
   if (type === "Categoria") {
     return (
       <span className={className}>
-        {item.Categoria.name} <PiIcons iconName={item.Categoria.icon} />{" "}
+        {item.category.name} <PiIcons iconName={item.category.icon} />{" "}
       </span>
     );
   }
 
-  return <span className={className}>{value.toString()}</span>;
+  if (type === "Data") {
+    return <span className={className}>{item.date}</span>;
+  }
+
+  return <span className={className} />;
 };

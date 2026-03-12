@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef, useContext } from "react";
 
-import { IFormattedData } from "@/types/data";
+import { IData, IFormattedData } from "@/types/data";
 
 import { useRouter } from "next/navigation";
 import { checkBankType } from "@/utils/checkBankType";
@@ -12,18 +12,30 @@ import { DataTable } from "@/components/modules/dataTable";
 import { HeaderTable } from "@/components/modules/headerTable";
 import { createData } from "../actions/data/create";
 import { TransactionsContext } from "@/providers/transactions";
+import {
+  addTimeStamp,
+  removeDuplicates,
+  removeSelectedItem,
+} from "./helpers/formaters";
 
 export default function Import() {
   const { push } = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const [json, setJson] = useState<IFormattedData[]>([]);
+  const [json, setJson] = useState<IData[]>([]);
+  const [transactionWithCategories, setTransactionWithCategories] = useState<
+    IFormattedData[]
+  >([]);
   const [selectedToDelete, setSelectedToDelete] = useState<string[]>([]);
 
   const [loading, setLoading] = useState(false);
 
-  const { transactions, categories, refreshTransactions } =
-    useContext(TransactionsContext);
+  const {
+    transactions,
+    categories,
+    refreshTransactions,
+    returnTransactionWithCategories,
+  } = useContext(TransactionsContext);
 
   const handleFileChange = (e: any) => {
     e.preventDefault();
@@ -37,6 +49,11 @@ export default function Import() {
           const json = csvJSON(content);
 
           setJson(json);
+          const transactions = returnTransactionWithCategories(
+            json,
+            categories,
+          );
+          setTransactionWithCategories(transactions);
         };
         reader.readAsText(file);
       }
@@ -50,7 +67,7 @@ export default function Import() {
     }
 
     const bankType = checkBankType(csv);
-    let formattedData: IFormattedData[] = [];
+    let formattedData: IData[] = [];
 
     if (bankType === "mercadoPago") {
       formattedData = formatMercadoPagoCSV(csv, categories);
@@ -67,30 +84,25 @@ export default function Import() {
     return formattedData;
   };
 
-  const filteredData = (json: IFormattedData[]) => {
-    const filtered = json?.filter((item: any) => {
-      const removed = selectedToDelete.some(
-        (selected) => selected === item["Identificador"],
-      );
-
-      return !removed;
-    });
-
-    return filtered;
-  };
-
   const handleSaveJSON = async () => {
     setLoading(true);
     try {
-      const removedDuplicates = json.filter((savedItem) => {
-        return !transactions.some(
-          (newItem) => newItem["Identificador"] === savedItem["Identificador"],
-        );
-      });
-      const filtered = filteredData(removedDuplicates);
+      const removedDuplicates = removeDuplicates(json, transactions);
+      const removedSelectedItem = removeSelectedItem(
+        removedDuplicates,
+        selectedToDelete,
+      );
+      const withTimeStamp = addTimeStamp(removedSelectedItem);
 
-      if (filtered.length > 0) {
-        await createData(filtered);
+      if (withTimeStamp.length > 0) {
+        await Promise.all(
+          withTimeStamp.map(async (item) => {
+            console.log("Saving item:", item);
+
+            await createData(item);
+          }),
+        );
+
         await refreshTransactions();
       }
 
@@ -151,16 +163,16 @@ export default function Import() {
         </button>
       </div>
 
-      {json.length > 0 && (
+      {transactionWithCategories.length > 0 && (
         <div className="flex gap-1 max-w-6xl w-full flex-col m-auto">
           <HeaderTable />
 
-          {json?.map((item) => (
+          {transactionWithCategories?.map((item) => (
             <DataTable
               item={item}
               selectedItemToExclude={selectedToDelete}
               setSelectedItemToExclude={setSelectedToDelete}
-              key={item.Identificador}
+              key={item.id}
             />
           ))}
         </div>

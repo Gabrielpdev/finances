@@ -49,7 +49,7 @@ export default function Home() {
           const date = formatToDate(obj);
           const monthKey = `${months[date.getMonth()]}-${date.getFullYear()}`;
           dateSet.add(monthKey);
-          typeSet.add(obj.Tipo);
+          typeSet.add(obj.type);
         }
 
         const sorted = [...data].sort((a, b) => {
@@ -95,11 +95,11 @@ export default function Home() {
         if (!selectedFilterDate.includes(itemMonth)) continue;
       }
 
-      if (selectedFilterType !== "" && selectedFilterType !== item["Tipo"]) {
+      if (selectedFilterType !== "" && selectedFilterType !== item.type) {
         continue;
       }
 
-      const estabelecimento = item["Estabelecimento"];
+      const estabelecimento = item.description;
       const category = getCategory(estabelecimento, categories);
       if (
         selectedFilterCategory.length !== 0 &&
@@ -108,11 +108,11 @@ export default function Home() {
         continue;
       }
 
-      if (selectedItemToExclude.includes(item.Identificador)) {
+      if (selectedItemToExclude.includes(item.id)) {
         continue;
       }
 
-      const valorItem = Number(item["Valor"]);
+      const valorItem = Number(item.amount);
       if (valorItem > 0) {
         inTotal += valorItem;
       } else {
@@ -200,12 +200,12 @@ export default function Home() {
                   .filter(
                     (item) =>
                       selectedFilterType === "" ||
-                      selectedFilterType === item.Tipo,
+                      selectedFilterType === item.type,
                   )
                   .filter((item) => {
                     return (
                       selectedFilterCategory.length === 0 ||
-                      selectedFilterCategory.includes(item.Categoria.name)
+                      selectedFilterCategory.includes(item.category.name)
                     );
                   })
                   .map((item) => {
@@ -214,7 +214,7 @@ export default function Home() {
                         item={item}
                         selectedItemToExclude={selectedItemToExclude}
                         setSelectedItemToExclude={setSelectedItemToExclude}
-                        key={item.Identificador}
+                        key={item.id}
                       />
                     );
                   })}

@@ -32,7 +32,7 @@ export function DataTable({
   return (
     <div
       className={`grid grid-cols-[repeat(40,_minmax(0,_1fr))] text-center bg-white p-5 pr-1 rounded-md w-full ${
-        selectedItemToExclude?.includes(item.Identificador) ? "opacity-60" : ""
+        selectedItemToExclude?.includes(item.id) ? "opacity-60" : ""
       } max-sm:flex max-sm:flex-wrap max-sm:justify-center max-sm:relative max-sm:p-0 max-sm:py-5 max-sm:pl-5`}
     >
       {header.map((headerItem) => (
@@ -49,7 +49,7 @@ export function DataTable({
       ))}
       {!!setSelectedItemToExclude && (
         <button
-          onClick={() => onSelectItemToExclude(item.Identificador)}
+          onClick={() => onSelectItemToExclude(item.id)}
           className={`flex items-center justify-center flex-col col-span-1 max-sm:px-2 max-sm:absolute max-sm:top-1/2 max-sm:-translate-y-1/2 max-sm:left-1 max-sm:text-2xl`}
         >
           <PiXCircleLight />

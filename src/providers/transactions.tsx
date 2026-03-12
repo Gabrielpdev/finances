@@ -21,44 +21,85 @@ export default function TransactionsProvider({
   const [transactions, setTransactions] = useState<IFormattedData[]>([]);
   const [categories, setCategories] = useState<ICategory[]>([]);
 
-  const readJsonFile = useCallback(async () => {
+  const init = useCallback(async () => {
+    console.log("Initializing TransactionsProvider...");
+
     let savedCategories = categories;
     let savedData: IData[] = [];
 
     if (categories.length <= 0) {
       savedCategories = await listCategories();
+
+      console.log("Fetched categories:", savedCategories);
       setCategories(savedCategories);
     }
 
     if (transactions.length <= 0) {
-      savedData = await listDatas();
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+
+      const endOfMonth = new Date();
+      endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+      endOfMonth.setDate(0);
+      endOfMonth.setHours(23, 59, 59, 999);
+
+      savedData = await listDatas(startOfMonth.getTime(), endOfMonth.getTime());
+      console.log("Fetched transactions:", savedData);
     }
 
     putCategoriesOnTransactions(savedData, savedCategories);
   }, []);
 
   const putCategoriesOnTransactions = useCallback(
-    async (savedData: IData[], savedCategories: ICategory[]) => {
-      let transactionsWithCategories: IFormattedData[] = [];
-
-      for (const item of savedData) {
-        const estabelecimento = item.Estabelecimento;
-
-        const category = getCategory(estabelecimento, savedCategories);
-
-        transactionsWithCategories.push({
-          ...item,
-          Categoria: category,
-        });
-      }
+    async (
+      savedData: IData[] | IFormattedData[],
+      savedCategories: ICategory[],
+    ) => {
+      let transactionsWithCategories = returnTransactionWithCategories(
+        savedData,
+        savedCategories,
+      );
 
       setTransactions(transactionsWithCategories);
     },
     [],
   );
 
+  const returnTransactionWithCategories = useCallback(
+    (savedData: IData[] | IFormattedData[], savedCategories: ICategory[]) => {
+      let transactionsWithCategories: IFormattedData[] = [];
+
+      for (const item of savedData) {
+        const estabelecimento = item.description;
+
+        const category = getCategory(estabelecimento, savedCategories);
+
+        transactionsWithCategories.push({
+          ...item,
+          category: category,
+        });
+      }
+
+      return transactionsWithCategories;
+    },
+    [],
+  );
+
   const refreshTransactions = useCallback(async () => {
-    const savedData = await listDatas();
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const endOfMonth = new Date();
+    endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+    endOfMonth.setDate(0);
+    endOfMonth.setHours(23, 59, 59, 999);
+
+    const savedData = await listDatas(
+      startOfMonth.getTime(),
+      endOfMonth.getTime(),
+    );
     putCategoriesOnTransactions(savedData, categories);
   }, [categories, putCategoriesOnTransactions]);
 
@@ -73,7 +114,7 @@ export default function TransactionsProvider({
   }
 
   useEffect(() => {
-    readJsonFile();
+    init();
   }, []);
 
   return (
@@ -86,6 +127,7 @@ export default function TransactionsProvider({
         refreshTransactions,
         refreshCategories,
         updateLocalTransactions,
+        returnTransactionWithCategories,
       }}
     >
       {children}

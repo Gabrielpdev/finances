@@ -6,13 +6,11 @@ import { IData } from "@/types/data";
 import { checkUserToken } from "../checkUserToken";
 import { revalidateTag } from "next/cache";
 
-export async function createData(data: IData[]) {
+export async function createData(data: IData) {
   try {
     await checkUserToken();
 
-    await db.collection("data").add({
-      data,
-    });
+    await db.collection("transactions").doc(data.id).set(data, { merge: true });
 
     revalidateTag("data-list");
   } catch (error) {
