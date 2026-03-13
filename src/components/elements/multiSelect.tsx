@@ -33,6 +33,10 @@ const MultiSelect = ({
     e.preventDefault();
 
     if (value === "Todos") {
+      if (selected.length === options.length) {
+        onSelect([]);
+        return;
+      }
       onSelect(options);
       return;
     }
@@ -56,15 +60,16 @@ const MultiSelect = ({
   }
 
   return (
-    <div>
+    <div className="flex flex-col max-sm:w-full">
       <label className="mb-2 block font-medium">{label}</label>
       <DropdownMenu.Root>
         <DropdownMenu.Trigger
           disabled={isLoading || disabled}
           defaultValue={defaultValue}
           asChild
+          className="w-60 h-9 rounded-md text-primary-foreground bg-white justify-start px-2.5 font-normal shadow-[0_1px_2px] shadow-black outline-none max-sm:w-full"
         >
-          <button className="inline-flex gap-2 p-1 items-center justify-between w-[200px] rounded-sm bg-white shadow-[0_1px_2px] shadow-black outline-none focus:shadow-[0_0_0_2px] focus:shadow-black">
+          <button className="flex items-center justify-between text-sm shadow-[0_1px_2px] shadow-black">
             <span className="truncate">
               {(selected.length > 0 && selected.length !== options.length
                 ? selected.join(", ")

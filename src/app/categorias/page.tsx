@@ -42,11 +42,11 @@ export default function Category() {
 
         const newCategories = [...categories, newCategory];
 
-        setCategories(newCategories);
-        setIsEditing("");
-
         try {
           await createCategories(newCategory);
+
+          setCategories(newCategories);
+          setIsEditing("");
           updateLocalTransactions();
 
           toast.success("Categoria criada com sucesso!");
@@ -66,10 +66,10 @@ export default function Category() {
 
     const newCategories = categories.filter((category) => category.id !== id);
 
-    setCategories(newCategories);
-
     try {
       await deleteCategories({ id });
+
+      setCategories(newCategories);
       updateLocalTransactions();
 
       toast.success("Categoria deletada com sucesso!");
@@ -103,9 +103,6 @@ export default function Category() {
 
     if (!foundCategory) return;
 
-    setCategories(newCategories);
-    setIsEditing("");
-
     try {
       await updateCategories({
         id,
@@ -116,6 +113,10 @@ export default function Category() {
           color,
         },
       });
+
+      setCategories(newCategories);
+      setIsEditing("");
+
       updateLocalTransactions();
       toast.success("Categoria atualizada com sucesso!");
     } catch (error) {

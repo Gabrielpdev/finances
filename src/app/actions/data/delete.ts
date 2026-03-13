@@ -2,19 +2,22 @@
 
 import { db } from "@/lib/firebase-admin";
 
-import { IData } from "@/types/data";
 import { checkUserToken } from "../checkUserToken";
 import { revalidateTag } from "next/cache";
 
-export async function createData(data: IData) {
+interface DeleteTransactionParams {
+  id: string;
+}
+
+export async function deleteTransaction({ id }: DeleteTransactionParams) {
   try {
     await checkUserToken();
 
-    await db.collection("transactions").doc(data.id).set(data, { merge: true });
+    await db.collection("transactions").doc(id).delete();
 
     revalidateTag("data-list");
   } catch (error) {
-    console.error("Error creating data:", error);
+    console.error("Error deleting transaction:", error);
     throw error;
   }
 }

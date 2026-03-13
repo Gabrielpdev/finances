@@ -1,19 +1,46 @@
+import { useRef } from "react";
 import { IData, IFormattedData } from "@/types/data";
 import { TableValue } from "../elements/tableValue";
 import { PiXCircleLight } from "react-icons/pi";
 import { header } from "@/constants/tableHeader";
+import { cn } from "@/lib/utils/cn";
 
 export interface DataTableProps {
   item: IFormattedData;
   selectedItemToExclude?: string[];
   setSelectedItemToExclude?: React.Dispatch<React.SetStateAction<string[]>>;
+  shouldWarnXpItem?: boolean;
+  onLongPress?: (id: string) => void;
 }
 
 export function DataTable({
   item,
   selectedItemToExclude,
   setSelectedItemToExclude,
+  shouldWarnXpItem,
+  onLongPress,
 }: DataTableProps) {
+  const pressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const startPress = () => {
+    if (!onLongPress) return;
+
+    if (pressTimerRef.current) {
+      clearTimeout(pressTimerRef.current);
+    }
+
+    pressTimerRef.current = setTimeout(() => {
+      onLongPress(item.id);
+    }, 800);
+  };
+
+  const endPress = () => {
+    if (pressTimerRef.current) {
+      clearTimeout(pressTimerRef.current);
+      pressTimerRef.current = null;
+    }
+  };
+
   const onSelectItemToExclude = (itemId: string) => {
     if (!selectedItemToExclude || !setSelectedItemToExclude) return;
 
@@ -31,9 +58,21 @@ export function DataTable({
 
   return (
     <div
-      className={`grid grid-cols-[repeat(40,_minmax(0,_1fr))] text-center bg-white p-5 pr-1 rounded-md w-full ${
-        selectedItemToExclude?.includes(item.Identificador) ? "opacity-60" : ""
-      } max-sm:flex max-sm:flex-wrap max-sm:justify-center max-sm:relative max-sm:p-0 max-sm:py-5 max-sm:pl-5`}
+      className={cn(
+        "grid grid-cols-[repeat(40,_minmax(0,_1fr))] text-center bg-white p-5 pr-1 rounded-md w-full",
+        "max-sm:flex max-sm:flex-wrap max-sm:justify-center max-sm:relative max-sm:p-0 max-sm:py-5 max-sm:pl-5",
+        selectedItemToExclude?.includes(item.id) && "opacity-60",
+        shouldWarnXpItem &&
+          item.description
+            .toLocaleLowerCase()
+            .includes("conta banco santander") &&
+          "bg-yellow-200",
+      )}
+      onMouseDown={startPress}
+      onMouseUp={endPress}
+      onMouseLeave={endPress}
+      onTouchStart={startPress}
+      onTouchEnd={endPress}
     >
       {header.map((headerItem) => (
         <div
@@ -49,7 +88,7 @@ export function DataTable({
       ))}
       {!!setSelectedItemToExclude && (
         <button
-          onClick={() => onSelectItemToExclude(item.Identificador)}
+          onClick={() => onSelectItemToExclude(item.id)}
           className={`flex items-center justify-center flex-col col-span-1 max-sm:px-2 max-sm:absolute max-sm:top-1/2 max-sm:-translate-y-1/2 max-sm:left-1 max-sm:text-2xl`}
         >
           <PiXCircleLight />

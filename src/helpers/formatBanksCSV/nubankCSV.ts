@@ -61,7 +61,7 @@ const formatValues = ({
 
     const category = getCategory(value, categories);
 
-    json["Categoria"] = category;
+    json["categoryId"] = category.id;
   }
 
   if (type === "Valor" && value) {

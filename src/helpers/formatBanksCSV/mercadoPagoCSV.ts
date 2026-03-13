@@ -1,9 +1,9 @@
-import { ICategory } from "@/types/data";
+import { ICategory, IData } from "@/types/data";
 import { getCategory } from "../getCategory";
 
 export function formatMercadoPagoCSV(csv: string, categories: ICategory[]) {
   const lines = csv.split("\n");
-  const result: any[] = [];
+  const result: IData[] = [];
   const headers = lines[3].split(";");
 
   const formattedHeaders = headers.map((item) => {
@@ -16,7 +16,7 @@ export function formatMercadoPagoCSV(csv: string, categories: ICategory[]) {
   });
 
   for (var i = 4; i < lines.length; i++) {
-    var obj = {} as any;
+    var obj = {} as IData;
     var currentLine = lines[i].split(";");
 
     for (var j = 0; j < formattedHeaders.length; j++) {
@@ -30,7 +30,7 @@ export function formatMercadoPagoCSV(csv: string, categories: ICategory[]) {
       }
     }
 
-    obj["Tipo"] = "Mercado Pago";
+    obj.type = "Mercado Pago";
 
     if (checkIfShouldAdd(obj)) {
       result.push(obj);
@@ -38,19 +38,19 @@ export function formatMercadoPagoCSV(csv: string, categories: ICategory[]) {
   }
 
   let totalRendimentos = 0;
-  let lastData = {};
+  let lastData = {} as IData;
 
-  const groupRendimentos = result.filter((item: any) => {
-    if (item["Estabelecimento"] !== "Rendimentos ") {
+  const groupRendimentos = result.filter((item) => {
+    if (item.description !== "Rendimentos ") {
       return true;
     }
 
-    totalRendimentos += item["Valor"];
+    totalRendimentos += item.amount;
     lastData = {
       ...result[result.length - 2],
-      Identificador: new Date().getTime().toString(),
-      Estabelecimento: "Rendimentos Totais",
-      Valor: totalRendimentos,
+      id: new Date().getTime().toString(),
+      description: "Rendimentos Totais",
+      amount: totalRendimentos,
     };
 
     return false;
@@ -67,7 +67,7 @@ const formatValues = ({
   value,
   categories,
 }: {
-  json: Record<string, any>;
+  json: IData;
   type: string;
   value: string;
   categories: ICategory[];
@@ -85,33 +85,43 @@ const formatValues = ({
 
     const category = getCategory(value, categories);
 
-    json["Categoria"] = category;
-    json[type] = formattedValue;
+    json.categoryId = category.id;
+    json.description = formattedValue;
     return;
   }
 
   if (type === "Valor" && value) {
     const valueNumber = Number(value.replace(".", "").replace(",", "."));
-    json[type] = valueNumber;
+    json.amount = valueNumber;
     return;
   }
 
   if (type === "Data" && value) {
     const valueFormatted = value.replaceAll("-", "/");
-    json[type] = valueFormatted;
+    json.date = valueFormatted;
     return;
   }
 
-  json[type] = value;
+  if (type === "Parcela" && value) {
+    json.installment = value;
+  }
+
+  if (type === "Portador" && value) {
+    json.holder = value;
+  }
+
+  if (type === "Identificador" && value) {
+    json.id = value;
+  }
 };
 
-const checkIfShouldAdd = (obj: any) => {
-  if (obj["Estabelecimento"]) {
-    const value = obj["Estabelecimento"] as string;
+const checkIfShouldAdd = (obj: IData) => {
+  if (obj.description) {
+    const value = obj.description as string;
 
     const lowerValue = value.toLowerCase();
 
-    if (lowerValue.includes("enviada gabriel pereira oliveira")) {
+    if (lowerValue.includes("gabriel pereira oliveira")) {
       return false;
     }
 

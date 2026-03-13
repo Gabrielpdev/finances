@@ -1,5 +1,5 @@
 "use client";
-import { useState, createContext, useEffect, useCallback, use } from "react";
+import { useState, createContext, useEffect, useCallback } from "react";
 
 import {
   ITransactionsContext,
@@ -10,6 +10,11 @@ import {
 import { listCategories } from "@/app/actions/categories/list";
 import { listDatas } from "@/app/actions/data/list";
 import { getCategory } from "@/helpers/getCategory";
+import {
+  endOfCurrentMonth,
+  startOfCurrentMonth,
+} from "@/constants/currentMonth";
+import { DateRange } from "react-day-picker";
 
 export const TransactionsContext = createContext({} as ITransactionsContext);
 
@@ -21,46 +26,82 @@ export default function TransactionsProvider({
   const [transactions, setTransactions] = useState<IFormattedData[]>([]);
   const [categories, setCategories] = useState<ICategory[]>([]);
 
-  const readJsonFile = useCallback(async () => {
+  const [filterDate, setFilterDate] = useState<DateRange | undefined>({
+    from: startOfCurrentMonth,
+    to: endOfCurrentMonth,
+  });
+
+  const init = useCallback(async () => {
+    console.log("Initializing TransactionsProvider...");
+
     let savedCategories = categories;
     let savedData: IData[] = [];
 
     if (categories.length <= 0) {
       savedCategories = await listCategories();
+
+      console.log("Fetched categories:", savedCategories);
       setCategories(savedCategories);
     }
 
     if (transactions.length <= 0) {
-      savedData = await listDatas();
+      savedData = await listDatas(
+        filterDate?.from?.getTime() || startOfCurrentMonth.getTime(),
+        filterDate?.to?.getTime() || endOfCurrentMonth.getTime(),
+      );
+      console.log("Fetched transactions:", savedData);
     }
 
     putCategoriesOnTransactions(savedData, savedCategories);
   }, []);
 
   const putCategoriesOnTransactions = useCallback(
-    async (savedData: IData[], savedCategories: ICategory[]) => {
-      let transactionsWithCategories: IFormattedData[] = [];
-
-      for (const item of savedData) {
-        const estabelecimento = item.Estabelecimento;
-
-        const category = getCategory(estabelecimento, savedCategories);
-
-        transactionsWithCategories.push({
-          ...item,
-          Categoria: category,
-        });
-      }
+    async (
+      savedData: IData[] | IFormattedData[],
+      savedCategories: ICategory[],
+    ) => {
+      let transactionsWithCategories = returnTransactionWithCategories(
+        savedData,
+        savedCategories,
+      );
 
       setTransactions(transactionsWithCategories);
     },
     [],
   );
 
-  const refreshTransactions = useCallback(async () => {
-    const savedData = await listDatas();
-    putCategoriesOnTransactions(savedData, categories);
-  }, [categories, putCategoriesOnTransactions]);
+  const returnTransactionWithCategories = useCallback(
+    (savedData: IData[] | IFormattedData[], savedCategories: ICategory[]) => {
+      let transactionsWithCategories: IFormattedData[] = [];
+
+      for (const item of savedData) {
+        const estabelecimento = item.description;
+
+        const category = getCategory(estabelecimento, savedCategories);
+
+        transactionsWithCategories.push({
+          ...item,
+          category: category,
+        });
+      }
+
+      return transactionsWithCategories;
+    },
+    [],
+  );
+
+  const refreshTransactions = useCallback(
+    async (startDate?: number, endDate?: number) => {
+      const savedData = await listDatas(
+        startDate ||
+          filterDate?.from?.getTime() ||
+          startOfCurrentMonth.getTime(),
+        endDate || filterDate?.to?.getTime() || endOfCurrentMonth.getTime(),
+      );
+      putCategoriesOnTransactions(savedData, categories);
+    },
+    [categories,filterDate,putCategoriesOnTransactions],
+  );
 
   const refreshCategories = useCallback(async () => {
     const savedCategories = await listCategories();
@@ -73,12 +114,14 @@ export default function TransactionsProvider({
   }
 
   useEffect(() => {
-    readJsonFile();
+    init();
   }, []);
 
   return (
     <TransactionsContext.Provider
       value={{
+        filterDate,
+        setFilterDate,
         transactions,
         setTransactions,
         categories,
@@ -86,6 +129,7 @@ export default function TransactionsProvider({
         refreshTransactions,
         refreshCategories,
         updateLocalTransactions,
+        returnTransactionWithCategories,
       }}
     >
       {children}

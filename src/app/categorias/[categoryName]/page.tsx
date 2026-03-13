@@ -38,7 +38,11 @@ export default function CategoryName() {
     }
   }, [params.categoryName, categories]);
 
-  const handleSaveNewValueOnList = async () => {
+  const handleSaveNewValueOnList = async (
+    event: React.FormEvent<HTMLFormElement>,
+  ) => {
+    event.preventDefault();
+
     if (inputRef?.current?.value && selectedCategory) {
       const value = inputRef.current.value;
 

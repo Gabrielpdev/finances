@@ -11,6 +11,10 @@ export default function HeaderDescription() {
 
   const { value } = useContext(CurrencyContext);
 
+  const saldo =
+    Number(value.in.replace("R$ ", "").replace(".", "").replace(",", ".")) +
+    Number(value.out.replace("R$ ", "").replace(".", "").replace(",", "."));
+
   if (path === "/home")
     return (
       <div className="flex max-w-6xl w-full gap-11 mt-16 overflow-x-auto min-h-max p-3 max-sm:mt-2 max-sm:gap-4">
@@ -18,18 +22,11 @@ export default function HeaderDescription() {
         <Card title="Saidas" value={value.out} type="out" />
         <Card
           title="Saldo"
-          value={(
-            Number(
-              value.in.replace("R$ ", "").replace(".", "").replace(",", "."),
-            ) +
-            Number(
-              value.out.replace("R$ ", "").replace(".", "").replace(",", "."),
-            )
-          ).toLocaleString("pt-BR", {
+          value={saldo.toLocaleString("pt-BR", {
             style: "currency",
             currency: "BRL",
           })}
-          type="in"
+          type={saldo >= 0 ? "in" : "out"}
         />
       </div>
     );
