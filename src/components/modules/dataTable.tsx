@@ -1,4 +1,3 @@
-import { useRef } from "react";
 import { IData, IFormattedData } from "@/types/data";
 import { TableValue } from "../elements/tableValue";
 import { PiXCircleLight } from "react-icons/pi";
@@ -20,25 +19,9 @@ export function DataTable({
   shouldWarnXpItem,
   onLongPress,
 }: DataTableProps) {
-  const pressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const startPress = () => {
+  const handleDoubleClick = () => {
     if (!onLongPress) return;
-
-    if (pressTimerRef.current) {
-      clearTimeout(pressTimerRef.current);
-    }
-
-    pressTimerRef.current = setTimeout(() => {
-      onLongPress(item.id);
-    }, 800);
-  };
-
-  const endPress = () => {
-    if (pressTimerRef.current) {
-      clearTimeout(pressTimerRef.current);
-      pressTimerRef.current = null;
-    }
+    onLongPress(item.id);
   };
 
   const onSelectItemToExclude = (itemId: string) => {
@@ -68,11 +51,7 @@ export function DataTable({
             .includes("conta banco santander") &&
           "bg-yellow-200",
       )}
-      onMouseDown={startPress}
-      onMouseUp={endPress}
-      onMouseLeave={endPress}
-      onTouchStart={startPress}
-      onTouchEnd={endPress}
+      onDoubleClick={handleDoubleClick}
     >
       {header.map((headerItem) => (
         <div
