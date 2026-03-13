@@ -16,17 +16,26 @@ import { getCategory } from "@/helpers/getCategory";
 import MultiSelect from "@/components/elements/multiSelect";
 import Select from "@/components/elements/select";
 import { TransactionsContext } from "@/providers/transactions";
+import { Calendar } from "@/components/elements/calendar";
+import { addDays } from "date-fns";
+import { DateRange } from "react-day-picker";
+
+const typesOptions = ["Xp", "Mercado Pago"];
 
 export default function Home() {
   const [showedData, setShowedData] = useState<IShowedData>({});
 
   const [loading, setLoading] = useState(true);
 
-  const [typesOptions, setTypesOptions] = useState<string[]>([]);
   const [selectedFilterType, setSelectedFilterType] = useState("");
 
   const [dateOptions, setDateOptions] = useState<string[]>([]);
   const [selectedFilterDate, setSelectedFilterDate] = useState<string[]>([]);
+
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: new Date(new Date().getFullYear(), 0, 12),
+    to: addDays(new Date(new Date().getFullYear(), 0, 12), 30),
+  });
 
   const [selectedFilterCategory, setSelectedFilterCategory] = useState<
     string[]
@@ -57,7 +66,6 @@ export default function Home() {
         });
 
         setDateOptions(Array.from(dateSet));
-        setTypesOptions(Array.from(typeSet));
 
         const grouped = groupByMonths(sorted, savedCategories);
         setShowedData(grouped);
@@ -148,11 +156,22 @@ export default function Home() {
     <div className="flex max-w-6xl w-full flex-col mt-24 m-auto">
       <div className="flex items-center gap-5 p-2 max-sm:flex-wrap">
         <div className="flex gap-1">
-          <MultiSelect
+          {/* <MultiSelect
             label="Data:"
             options={dateOptions.map((cat) => cat)}
             selected={selectedFilterDate}
             onSelect={(value) => setSelectedFilterDate(value)}
+          /> */}
+
+          <Calendar
+            mode="range"
+            defaultMonth={dateRange?.from}
+            selected={dateRange}
+            onSelect={setDateRange}
+            numberOfMonths={2}
+            disabled={(date) =>
+              date > new Date() || date < new Date("1900-01-01")
+            }
           />
         </div>
 

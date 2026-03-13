@@ -16,7 +16,7 @@ export default function Category() {
   const inputIconRef = useRef<HTMLInputElement>(null);
   const inputColorRef = useRef<HTMLInputElement>(null);
 
-  const { setCategories, categories, refreshCategories } =
+  const { setCategories, categories, updateLocalTransactions } =
     useContext(TransactionsContext);
 
   const [isAdding, setIsAdding] = useState(false);
@@ -42,12 +42,12 @@ export default function Category() {
 
         const newCategories = [...categories, newCategory];
 
-        setCategories(newCategories);
-        setIsEditing("");
-
         try {
           await createCategories(newCategory);
-          refreshCategories();
+
+          setCategories(newCategories);
+          setIsEditing("");
+          updateLocalTransactions();
 
           toast.success("Categoria criada com sucesso!");
         } catch (error) {
@@ -66,11 +66,11 @@ export default function Category() {
 
     const newCategories = categories.filter((category) => category.id !== id);
 
-    setCategories(newCategories);
-
     try {
       await deleteCategories({ id });
-      refreshCategories();
+
+      setCategories(newCategories);
+      updateLocalTransactions();
 
       toast.success("Categoria deletada com sucesso!");
     } catch (error) {
@@ -103,9 +103,6 @@ export default function Category() {
 
     if (!foundCategory) return;
 
-    setCategories(newCategories);
-    setIsEditing("");
-
     try {
       await updateCategories({
         id,
@@ -116,7 +113,11 @@ export default function Category() {
           color,
         },
       });
-      refreshCategories();
+
+      setCategories(newCategories);
+      setIsEditing("");
+
+      updateLocalTransactions();
       toast.success("Categoria atualizada com sucesso!");
     } catch (error) {
       console.error("Failed to update category:", error);

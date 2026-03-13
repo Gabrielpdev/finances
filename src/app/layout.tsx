@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Poppins } from "next/font/google";
+import { Poppins, Inter } from "next/font/google";
 import { ToastContainer } from "react-toastify";
 
 import FirebaseProvider from "@/providers/firebase";
@@ -9,6 +9,9 @@ import Header from "@/components/layout/header";
 
 import "./globals.css";
 import TransactionsProvider from "@/providers/transactions";
+import { cn } from "@/lib/utils";
+
+const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
 const inter = Poppins({ subsets: ["latin"], weight: "400" });
 
@@ -35,7 +38,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={cn("font-sans", inter.variable)}>
       <body className={inter.className}>
         <FirebaseProvider>
           <CurrencyProvider>
