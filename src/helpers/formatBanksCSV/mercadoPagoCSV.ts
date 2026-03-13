@@ -109,15 +109,19 @@ const formatValues = ({
   if (type === "Portador" && value) {
     json.holder = value;
   }
+
+  if (type === "Identificador" && value) {
+    json.id = value;
+  }
 };
 
-const checkIfShouldAdd = (obj: any) => {
-  if (obj["Estabelecimento"]) {
-    const value = obj["Estabelecimento"] as string;
+const checkIfShouldAdd = (obj: IData) => {
+  if (obj.description) {
+    const value = obj.description as string;
 
     const lowerValue = value.toLowerCase();
 
-    if (lowerValue.includes("enviada gabriel pereira oliveira")) {
+    if (lowerValue.includes("gabriel pereira oliveira")) {
       return false;
     }
 

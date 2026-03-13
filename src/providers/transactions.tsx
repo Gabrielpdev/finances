@@ -46,8 +46,8 @@ export default function TransactionsProvider({
 
     if (transactions.length <= 0) {
       savedData = await listDatas(
-        startOfCurrentMonth.getTime(),
-        endOfCurrentMonth.getTime(),
+        filterDate?.from?.getTime() || startOfCurrentMonth.getTime(),
+        filterDate?.to?.getTime() || endOfCurrentMonth.getTime(),
       );
       console.log("Fetched transactions:", savedData);
     }
@@ -93,12 +93,14 @@ export default function TransactionsProvider({
   const refreshTransactions = useCallback(
     async (startDate?: number, endDate?: number) => {
       const savedData = await listDatas(
-        startDate || startOfCurrentMonth.getTime(),
-        endDate || endOfCurrentMonth.getTime(),
+        startDate ||
+          filterDate?.from?.getTime() ||
+          startOfCurrentMonth.getTime(),
+        endDate || filterDate?.to?.getTime() || endOfCurrentMonth.getTime(),
       );
       putCategoriesOnTransactions(savedData, categories);
     },
-    [categories, putCategoriesOnTransactions],
+    [categories,filterDate,putCategoriesOnTransactions],
   );
 
   const refreshCategories = useCallback(async () => {

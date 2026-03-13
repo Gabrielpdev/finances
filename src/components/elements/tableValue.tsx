@@ -4,6 +4,7 @@ import { IData, IFormattedData } from "@/types/data";
 interface TableValueProps {
   item: IFormattedData;
   type: string;
+  shouldWarnXpItem?: boolean;
 }
 
 export const getColor = (item: IFormattedData, type: string) => {

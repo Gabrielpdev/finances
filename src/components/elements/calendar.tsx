@@ -16,7 +16,7 @@ import { TransactionsContext } from "@/providers/transactions";
 export function DatePickerWithRange() {
   const { filterDate, setFilterDate } = React.useContext(TransactionsContext);
   return (
-    <Field className="mx-auto w-60">
+    <Field className="w-60  max-sm:w-full ">
       <FieldLabel htmlFor="date-picker-range">Selecionar Data</FieldLabel>
       <Popover>
         <PopoverTrigger asChild>

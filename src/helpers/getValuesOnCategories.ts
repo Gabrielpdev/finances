@@ -9,13 +9,13 @@ export const groupCategories = (data: IFormattedData[]) => {
   };
 
   data.forEach((item) => {
-    if (item.Categoria.name === "Salario") return;
+    if (item.category.name === "Salario") return;
 
-    totalByCategories[item.Categoria.name] = {
+    totalByCategories[item.category.name] = {
       value:
-        (totalByCategories[item.Categoria.name]?.value ?? 0) +
-        Number(item.Valor) * -1,
-      fill: item.Categoria.color,
+        (totalByCategories[item.category.name]?.value ?? 0) +
+        Number(item.amount) * -1,
+      fill: item.category.color,
     };
   });
 

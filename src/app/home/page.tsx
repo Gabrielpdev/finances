@@ -17,6 +17,10 @@ import MultiSelect from "@/components/elements/multiSelect";
 import Select from "@/components/elements/select";
 import { TransactionsContext } from "@/providers/transactions";
 import { DatePickerWithRange } from "@/components/elements/calendar";
+import { Button } from "@/components/ui/button";
+import { PiMagnifyingGlass } from "react-icons/pi";
+import { toast } from "react-toastify";
+import { deleteTransaction } from "../actions/data/delete";
 
 const typesOptions = ["Xp", "Mercado Pago"];
 
@@ -144,14 +148,30 @@ export default function Home() {
     }
   };
 
+  const handleDeleteItem = async (id: string) => {
+    if (!confirm("Tem certeza que deseja excluir este item?")) {
+      return;
+    }
+
+    try {
+      await deleteTransaction({ id });
+
+      refreshTransactions();
+      toast.success("Item excluído com sucesso!");
+    } catch (error) {
+      console.error("Error deleting item:", error);
+      toast.error("Erro ao excluir item. Por favor, tente novamente.");
+    }
+  };
+
   return (
     <div className="flex max-w-6xl w-full flex-col mt-24 m-auto">
-      <div className="flex items-center gap-5 p-2 max-sm:flex-wrap">
-        <div className="flex gap-1">
+      <div className="flex items-end gap-5 p-2 max-sm:flex-wrap">
+        <div className="flex gap-1  max-sm:w-full">
           <DatePickerWithRange />
         </div>
 
-        <div className="flex gap-1">
+        <div className="flex gap-1  max-sm:w-full">
           <Select
             title="Todos"
             label="Tipo:"
@@ -161,7 +181,7 @@ export default function Home() {
           />
         </div>
 
-        <div className="flex gap-1">
+        <div className="flex gap-1  max-sm:w-full">
           <MultiSelect
             label="Categoria:"
             options={[...categories.map((cat) => cat.name), "Outros"]}
@@ -170,7 +190,13 @@ export default function Home() {
           />
         </div>
 
-        <button onClick={searchWithFilters}>Buscar</button>
+        <Button
+          className="flex items-center justify-center bg-green-700 hover:bg-green-800 text-white max-sm:w-full"
+          onClick={searchWithFilters}
+        >
+          Buscar
+          <PiMagnifyingGlass />
+        </Button>
       </div>
 
       <HeaderTable />
@@ -205,6 +231,7 @@ export default function Home() {
                       item={item}
                       selectedItemToExclude={selectedItemToExclude}
                       setSelectedItemToExclude={setSelectedItemToExclude}
+                      onLongPress={handleDeleteItem}
                       key={item.id}
                     />
                   );

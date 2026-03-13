@@ -97,8 +97,6 @@ export default function Import() {
       if (withTimeStamp.length > 0) {
         await Promise.all(
           withTimeStamp.map(async (item) => {
-            console.log("Saving item:", item);
-
             await createData(item);
           }),
         );
@@ -173,6 +171,7 @@ export default function Import() {
               selectedItemToExclude={selectedToDelete}
               setSelectedItemToExclude={setSelectedToDelete}
               key={item.id}
+              shouldWarnXpItem
             />
           ))}
         </div>

@@ -49,14 +49,14 @@ const Select = ({
   }
 
   return (
-    <div>
+    <div className="flex flex-col max-sm:w-full">
       <label className="mb-2 block font-medium">{label}</label>
       <DropdownMenu.Root>
         <DropdownMenu.Trigger
           disabled={isLoading || disabled}
           defaultValue={defaultValue}
           asChild
-          className="w-60 h-9 rounded-md text-primary-foreground bg-white justify-start px-2.5 font-normal shadow-[0_1px_2px] shadow-black outline-none"
+          className="w-60 h-9 rounded-md text-primary-foreground bg-white justify-start px-2.5 font-normal shadow-[0_1px_2px] shadow-black outline-none  max-sm:w-full"
         >
           <button className="flex items-center justify-between text-sm">
             <span className="truncate">{selected || title}</span>
