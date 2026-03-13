@@ -54,14 +54,28 @@ export default function FirebaseProvider({
 
     const token = await user.getIdToken();
     await createSession(token!);
+    const result = await checkUserToken();
 
-    const isAllowed = await checkUserToken();
+    if (!result.valid) {
+      if (result.reason === "expired") {
+        // Force refresh the Firebase ID token and update the session cookie
+        const refreshedToken = await user.getIdToken(true);
+        await createSession(refreshedToken!);
 
-    if (!isAllowed) {
-      setLoading(false);
-      setIsUserAllowed(false);
-      replace("/not-allowed");
-      return;
+        const retryResult = await checkUserToken();
+
+        if (!retryResult.valid) {
+          setLoading(false);
+          setIsUserAllowed(false);
+          replace("/not-allowed");
+          return;
+        }
+      } else {
+        setLoading(false);
+        setIsUserAllowed(false);
+        replace("/not-allowed");
+        return;
+      }
     }
 
     setIsUserAllowed(true);

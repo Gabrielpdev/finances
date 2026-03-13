@@ -31,7 +31,7 @@ export default function TransactionsProvider({
     to: endOfCurrentMonth,
   });
 
-  const init = useCallback(async () => {
+  const init = async () => {
     console.log("Initializing TransactionsProvider...");
 
     let savedCategories = categories;
@@ -53,61 +53,53 @@ export default function TransactionsProvider({
     }
 
     putCategoriesOnTransactions(savedData, savedCategories);
-  }, []);
+  };
 
-  const putCategoriesOnTransactions = useCallback(
-    async (
-      savedData: IData[] | IFormattedData[],
-      savedCategories: ICategory[],
-    ) => {
-      let transactionsWithCategories = returnTransactionWithCategories(
-        savedData,
-        savedCategories,
-      );
+  const putCategoriesOnTransactions = async (
+    savedData: IData[] | IFormattedData[],
+    savedCategories: ICategory[],
+  ) => {
+    let transactionsWithCategories = returnTransactionWithCategories(
+      savedData,
+      savedCategories,
+    );
 
-      setTransactions(transactionsWithCategories);
-    },
-    [],
-  );
+    setTransactions(transactionsWithCategories);
+  };
 
-  const returnTransactionWithCategories = useCallback(
-    (savedData: IData[] | IFormattedData[], savedCategories: ICategory[]) => {
-      let transactionsWithCategories: IFormattedData[] = [];
+  const returnTransactionWithCategories = (
+    savedData: IData[] | IFormattedData[],
+    savedCategories: ICategory[],
+  ) => {
+    let transactionsWithCategories: IFormattedData[] = [];
 
-      for (const item of savedData) {
-        const estabelecimento = item.description;
+    for (const item of savedData) {
+      const estabelecimento = item.description;
 
-        const category = getCategory(estabelecimento, savedCategories);
+      const category = getCategory(estabelecimento, savedCategories);
 
-        transactionsWithCategories.push({
-          ...item,
-          category: category,
-        });
-      }
+      transactionsWithCategories.push({
+        ...item,
+        category: category,
+      });
+    }
 
-      return transactionsWithCategories;
-    },
-    [],
-  );
+    return transactionsWithCategories;
+  };
 
-  const refreshTransactions = useCallback(
-    async (startDate?: number, endDate?: number) => {
-      const savedData = await listDatas(
-        startDate ||
-          filterDate?.from?.getTime() ||
-          startOfCurrentMonth.getTime(),
-        endDate || filterDate?.to?.getTime() || endOfCurrentMonth.getTime(),
-      );
-      putCategoriesOnTransactions(savedData, categories);
-    },
-    [categories,filterDate,putCategoriesOnTransactions],
-  );
+  const refreshTransactions = async (startDate?: number, endDate?: number) => {
+    const savedData = await listDatas(
+      startDate || filterDate?.from?.getTime() || startOfCurrentMonth.getTime(),
+      endDate || filterDate?.to?.getTime() || endOfCurrentMonth.getTime(),
+    );
+    putCategoriesOnTransactions(savedData, categories);
+  };
 
-  const refreshCategories = useCallback(async () => {
+  const refreshCategories = async () => {
     const savedCategories = await listCategories();
     setCategories(savedCategories);
     putCategoriesOnTransactions(transactions, savedCategories);
-  }, [transactions, putCategoriesOnTransactions]);
+  };
 
   function updateLocalTransactions() {
     putCategoriesOnTransactions(transactions, categories);
