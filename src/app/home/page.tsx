@@ -16,9 +16,7 @@ import { getCategory } from "@/helpers/getCategory";
 import MultiSelect from "@/components/elements/multiSelect";
 import Select from "@/components/elements/select";
 import { TransactionsContext } from "@/providers/transactions";
-import { Calendar } from "@/components/elements/calendar";
-import { addDays } from "date-fns";
-import { DateRange } from "react-day-picker";
+import { DatePickerWithRange } from "@/components/elements/calendar";
 
 const typesOptions = ["Xp", "Mercado Pago"];
 
@@ -29,14 +27,6 @@ export default function Home() {
 
   const [selectedFilterType, setSelectedFilterType] = useState("");
 
-  const [dateOptions, setDateOptions] = useState<string[]>([]);
-  const [selectedFilterDate, setSelectedFilterDate] = useState<string[]>([]);
-
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: new Date(new Date().getFullYear(), 0, 12),
-    to: addDays(new Date(new Date().getFullYear(), 0, 12), 30),
-  });
-
   const [selectedFilterCategory, setSelectedFilterCategory] = useState<
     string[]
   >([]);
@@ -46,7 +36,8 @@ export default function Home() {
   );
 
   const { setValue } = useContext(CurrencyContext);
-  const { transactions, categories } = useContext(TransactionsContext);
+  const { transactions, categories, refreshTransactions, filterDate } =
+    useContext(TransactionsContext);
 
   const removeCreditDatas = useCallback(
     (data: IData[], savedCategories: ICategory[]) => {
@@ -64,8 +55,6 @@ export default function Home() {
         const sorted = [...data].sort((a, b) => {
           return formatToDate(b).getTime() - formatToDate(a).getTime();
         });
-
-        setDateOptions(Array.from(dateSet));
 
         const grouped = groupByMonths(sorted, savedCategories);
         setShowedData(grouped);
@@ -96,13 +85,6 @@ export default function Home() {
     let outTotal = 0;
 
     for (const item of transactions) {
-      if (selectedFilterDate.length !== 0) {
-        const date = formatToDate(item);
-        const itemMonth = `${months[date.getMonth()]}-${date.getFullYear()}`;
-
-        if (!selectedFilterDate.includes(itemMonth)) continue;
-      }
-
       if (selectedFilterType !== "" && selectedFilterType !== item.type) {
         continue;
       }
@@ -141,7 +123,6 @@ export default function Home() {
   }, [
     transactions,
     categories,
-    selectedFilterDate,
     selectedFilterType,
     selectedFilterCategory,
     selectedItemToExclude,
@@ -152,27 +133,22 @@ export default function Home() {
     formatTotalValue();
   }, [formatTotalValue]);
 
+  const searchWithFilters = () => {
+    const from = filterDate?.from
+      ? new Date(filterDate.from).getTime()
+      : undefined;
+    const to = filterDate?.to ? new Date(filterDate.to).getTime() : undefined;
+
+    if (from && to) {
+      refreshTransactions(from, to);
+    }
+  };
+
   return (
     <div className="flex max-w-6xl w-full flex-col mt-24 m-auto">
       <div className="flex items-center gap-5 p-2 max-sm:flex-wrap">
         <div className="flex gap-1">
-          {/* <MultiSelect
-            label="Data:"
-            options={dateOptions.map((cat) => cat)}
-            selected={selectedFilterDate}
-            onSelect={(value) => setSelectedFilterDate(value)}
-          /> */}
-
-          <Calendar
-            mode="range"
-            defaultMonth={dateRange?.from}
-            selected={dateRange}
-            onSelect={setDateRange}
-            numberOfMonths={2}
-            disabled={(date) =>
-              date > new Date() || date < new Date("1900-01-01")
-            }
-          />
+          <DatePickerWithRange />
         </div>
 
         <div className="flex gap-1">
@@ -193,6 +169,8 @@ export default function Home() {
             onSelect={(value) => setSelectedFilterCategory(value)}
           />
         </div>
+
+        <button onClick={searchWithFilters}>Buscar</button>
       </div>
 
       <HeaderTable />
@@ -202,44 +180,38 @@ export default function Home() {
           <Loading />
         </div>
       ) : (
-        Object.entries(showedData)
-          ?.filter(
-            ([key]) =>
-              selectedFilterDate.length === 0 ||
-              selectedFilterDate.includes(key),
-          )
-          ?.map(([key, month]) => {
-            return (
-              <div key={key} className="gap-1 flex flex-col relative">
-                <div className="flex w-full items-center justify-center text-zinc-400 py-4 sticky top-0">
-                  <h2 className="text-base text-center">{key}</h2>
-                </div>
-
-                {month
-                  .filter(
-                    (item) =>
-                      selectedFilterType === "" ||
-                      selectedFilterType === item.type,
-                  )
-                  .filter((item) => {
-                    return (
-                      selectedFilterCategory.length === 0 ||
-                      selectedFilterCategory.includes(item.category.name)
-                    );
-                  })
-                  .map((item) => {
-                    return (
-                      <DataTable
-                        item={item}
-                        selectedItemToExclude={selectedItemToExclude}
-                        setSelectedItemToExclude={setSelectedItemToExclude}
-                        key={item.id}
-                      />
-                    );
-                  })}
+        Object.entries(showedData)?.map(([key, month]) => {
+          return (
+            <div key={key} className="gap-1 flex flex-col relative">
+              <div className="flex w-full items-center justify-center text-zinc-400 py-4 sticky top-0">
+                <h2 className="text-base text-center">{key}</h2>
               </div>
-            );
-          })
+
+              {month
+                .filter(
+                  (item) =>
+                    selectedFilterType === "" ||
+                    selectedFilterType === item.type,
+                )
+                .filter((item) => {
+                  return (
+                    selectedFilterCategory.length === 0 ||
+                    selectedFilterCategory.includes(item.category.name)
+                  );
+                })
+                .map((item) => {
+                  return (
+                    <DataTable
+                      item={item}
+                      selectedItemToExclude={selectedItemToExclude}
+                      setSelectedItemToExclude={setSelectedItemToExclude}
+                      key={item.id}
+                    />
+                  );
+                })}
+            </div>
+          );
+        })
       )}
     </div>
   );

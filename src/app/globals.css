@@ -1,8 +1,13 @@
-@import "tailwindcss";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* @import "tailwindcss"; */
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+/* @custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
@@ -45,10 +50,6 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 }
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 :root {
   --radius: 0.625rem;
@@ -197,4 +198,4 @@
   html {
     @apply font-sans;
   }
-}
+} */

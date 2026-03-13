@@ -1,5 +1,5 @@
 "use client";
-import { useState, createContext, useEffect, useCallback, use } from "react";
+import { useState, createContext, useEffect, useCallback } from "react";
 
 import {
   ITransactionsContext,
@@ -10,6 +10,11 @@ import {
 import { listCategories } from "@/app/actions/categories/list";
 import { listDatas } from "@/app/actions/data/list";
 import { getCategory } from "@/helpers/getCategory";
+import {
+  endOfCurrentMonth,
+  startOfCurrentMonth,
+} from "@/constants/currentMonth";
+import { DateRange } from "react-day-picker";
 
 export const TransactionsContext = createContext({} as ITransactionsContext);
 
@@ -20,6 +25,11 @@ export default function TransactionsProvider({
 }) {
   const [transactions, setTransactions] = useState<IFormattedData[]>([]);
   const [categories, setCategories] = useState<ICategory[]>([]);
+
+  const [filterDate, setFilterDate] = useState<DateRange | undefined>({
+    from: startOfCurrentMonth,
+    to: endOfCurrentMonth,
+  });
 
   const init = useCallback(async () => {
     console.log("Initializing TransactionsProvider...");
@@ -35,16 +45,10 @@ export default function TransactionsProvider({
     }
 
     if (transactions.length <= 0) {
-      const startOfMonth = new Date();
-      startOfMonth.setDate(1);
-      startOfMonth.setHours(0, 0, 0, 0);
-
-      const endOfMonth = new Date();
-      endOfMonth.setMonth(endOfMonth.getMonth() + 1);
-      endOfMonth.setDate(0);
-      endOfMonth.setHours(23, 59, 59, 999);
-
-      savedData = await listDatas(startOfMonth.getTime(), endOfMonth.getTime());
+      savedData = await listDatas(
+        startOfCurrentMonth.getTime(),
+        endOfCurrentMonth.getTime(),
+      );
       console.log("Fetched transactions:", savedData);
     }
 
@@ -86,22 +90,16 @@ export default function TransactionsProvider({
     [],
   );
 
-  const refreshTransactions = useCallback(async () => {
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
-
-    const endOfMonth = new Date();
-    endOfMonth.setMonth(endOfMonth.getMonth() + 1);
-    endOfMonth.setDate(0);
-    endOfMonth.setHours(23, 59, 59, 999);
-
-    const savedData = await listDatas(
-      startOfMonth.getTime(),
-      endOfMonth.getTime(),
-    );
-    putCategoriesOnTransactions(savedData, categories);
-  }, [categories, putCategoriesOnTransactions]);
+  const refreshTransactions = useCallback(
+    async (startDate?: number, endDate?: number) => {
+      const savedData = await listDatas(
+        startDate || startOfCurrentMonth.getTime(),
+        endDate || endOfCurrentMonth.getTime(),
+      );
+      putCategoriesOnTransactions(savedData, categories);
+    },
+    [categories, putCategoriesOnTransactions],
+  );
 
   const refreshCategories = useCallback(async () => {
     const savedCategories = await listCategories();
@@ -120,6 +118,8 @@ export default function TransactionsProvider({
   return (
     <TransactionsContext.Provider
       value={{
+        filterDate,
+        setFilterDate,
         transactions,
         setTransactions,
         categories,

@@ -1,3 +1,5 @@
+import { DateRange } from "react-day-picker";
+
 export interface IData {
   date: string;
   description: string;
@@ -50,7 +52,9 @@ export interface ITransactionsContext {
   setCategories: (categories: ICategory[]) => void;
   transactions: IFormattedData[];
   setTransactions: (transactions: IFormattedData[]) => void;
-  refreshTransactions: () => Promise<void>;
+  filterDate: DateRange | undefined;
+  setFilterDate: React.Dispatch<React.SetStateAction<DateRange | undefined>>;
+  refreshTransactions: (startDate?: number, endDate?: number) => Promise<void>;
   refreshCategories: () => Promise<void>;
   updateLocalTransactions: () => void;
   returnTransactionWithCategories: (

@@ -11,9 +11,7 @@ import "./globals.css";
 import TransactionsProvider from "@/providers/transactions";
 import { cn } from "@/lib/utils";
 
-const inter = Inter({subsets:['latin'],variable:'--font-sans'});
-
-const inter = Poppins({ subsets: ["latin"], weight: "400" });
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const runtime = "nodejs";
 
