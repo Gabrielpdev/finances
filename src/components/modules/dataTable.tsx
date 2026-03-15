@@ -1,8 +1,12 @@
 import { IData, IFormattedData } from "@/types/data";
 import { TableValue } from "../elements/tableValue";
-import { PiXCircleLight } from "react-icons/pi";
+import { PiCheck, PiXCircleLight } from "react-icons/pi";
 import { header } from "@/constants/tableHeader";
 import { cn } from "@/lib/utils/cn";
+import { useContext, useState } from "react";
+import { updateTransaction } from "@/app/actions/data/update";
+import { toast } from "react-toastify";
+import { TransactionsContext } from "@/providers/transactions";
 
 export interface DataTableProps {
   item: IFormattedData;
@@ -10,6 +14,7 @@ export interface DataTableProps {
   setSelectedItemToExclude?: React.Dispatch<React.SetStateAction<string[]>>;
   shouldWarnXpItem?: boolean;
   onLongPress?: (id: string) => void;
+  enableEdit?: boolean;
 }
 
 export function DataTable({
@@ -18,7 +23,17 @@ export function DataTable({
   setSelectedItemToExclude,
   shouldWarnXpItem,
   onLongPress,
+  enableEdit,
 }: DataTableProps) {
+  const { updateOneTransaction } = useContext(TransactionsContext);
+  const [changes, setChanges] = useState<{
+    label: string;
+    value: string | undefined;
+  }>({
+    label: item.category.name,
+    value: item.category.id,
+  });
+
   const handleDoubleClick = () => {
     if (!onLongPress) return;
     onLongPress(item.id);
@@ -37,6 +52,29 @@ export function DataTable({
     }
 
     setSelectedItemToExclude(updatedExcludedItems);
+  };
+
+  const handleUpdateTransaction = async () => {
+    try {
+      const updatedItem: IData = {
+        amount: item.amount,
+        categoryId: changes?.value || item.categoryId,
+        date: item.date,
+        description: item.description,
+        id: item.id,
+        timestamp: item.timestamp,
+        type: item.type,
+        holder: item.holder,
+        installment: item.installment,
+      };
+
+      await updateTransaction({ data: updatedItem });
+      updateOneTransaction(updatedItem);
+      toast.success("Transação atualizada com sucesso!");
+    } catch (error) {
+      console.log("Error updating transaction:", error);
+      toast.error("Erro ao atualizar transação!");
+    }
   };
 
   return (
@@ -62,15 +100,29 @@ export function DataTable({
               : "col-[span_6]"
           }`}
         >
-          <TableValue item={item} type={headerItem as keyof IData} />
+          <TableValue
+            item={item}
+            type={headerItem as keyof IData}
+            setChanges={enableEdit ? setChanges : undefined}
+            changes={changes}
+          />
         </div>
       ))}
-      {!!setSelectedItemToExclude && (
+      {!!setSelectedItemToExclude && !enableEdit && (
         <button
           onClick={() => onSelectItemToExclude(item.id)}
           className={`flex items-center justify-center flex-col col-span-1 max-sm:px-2 max-sm:absolute max-sm:top-1/2 max-sm:-translate-y-1/2 max-sm:left-1 max-sm:text-2xl`}
         >
           <PiXCircleLight />
+        </button>
+      )}
+      {enableEdit && (
+        <button
+          disabled={changes.value === item.category.id}
+          onClick={handleUpdateTransaction}
+          className={`disabled:opacity-50 disabled:cursor-not-allowed bg-green-700 w-[24px] ml-1 rounded-full hover:bg-green-800 flex items-center justify-center flex-col col-span-1 max-sm:px-2 max-sm:absolute max-sm:top-1/2 max-sm:-translate-y-1/2 max-sm:left-1 max-sm:text-2xl`}
+        >
+          <PiCheck className="text-white" />
         </button>
       )}
     </div>

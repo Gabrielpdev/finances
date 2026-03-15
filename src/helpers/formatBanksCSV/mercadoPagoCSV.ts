@@ -30,6 +30,8 @@ export function formatMercadoPagoCSV(csv: string, categories: ICategory[]) {
       }
     }
 
+    obj.holder = "Gabriel Pereira Oliveira";
+    obj.installment = "-";
     obj.type = "Mercado Pago";
 
     if (checkIfShouldAdd(obj)) {
@@ -99,6 +101,12 @@ const formatValues = ({
   if (type === "Data" && value) {
     const valueFormatted = value.replaceAll("-", "/");
     json.date = valueFormatted;
+
+    const [day, month, year] = valueFormatted.split("/");
+    const date = new Date(`${year}-${month}-${day}T00:00:00`);
+
+    json.timestamp = date.getTime();
+
     return;
   }
 

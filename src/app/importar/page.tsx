@@ -92,11 +92,11 @@ export default function Import() {
         removedDuplicates,
         selectedToDelete,
       );
-      const withTimeStamp = addTimeStamp(removedSelectedItem);
+      // const withTimeStamp = addTimeStamp(removedSelectedItem);
 
-      if (withTimeStamp.length > 0) {
+      if (removedSelectedItem.length > 0) {
         await Promise.all(
-          withTimeStamp.map(async (item) => {
+          removedSelectedItem.map(async (item) => {
             await createData(item);
           }),
         );

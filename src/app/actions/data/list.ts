@@ -7,15 +7,21 @@ import { IData } from "@/types/data";
 import { checkUserToken } from "../checkUserToken";
 
 export const listDatas = unstable_cache(
-  async (start: number, end: number) => {
+  async ({ start, end }: { start?: number; end?: number }) => {
     try {
       await checkUserToken();
 
-      const snapshot = await db
-        .collection("transactions")
-        .where("timestamp", ">=", start)
-        .where("timestamp", "<=", end)
-        .get();
+      // make the where only if the param exists, otherwise return all the data
+      let query: FirebaseFirestore.Query = db.collection("transactions");
+
+      if (start !== undefined) {
+        query = query.where("timestamp", ">=", start);
+      }
+      if (end !== undefined) {
+        query = query.where("timestamp", "<=", end);
+      }
+
+      const snapshot = await query.get();
 
       const dataList: IData[] = [];
 

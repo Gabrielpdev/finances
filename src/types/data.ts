@@ -50,6 +50,7 @@ export interface ICurrencyContext {
 export interface ITransactionsContext {
   categories: ICategory[];
   setCategories: (categories: ICategory[]) => void;
+  futureTransactions: IFormattedData[];
   transactions: IFormattedData[];
   setTransactions: (transactions: IFormattedData[]) => void;
   filterDate: DateRange | undefined;
@@ -61,4 +62,6 @@ export interface ITransactionsContext {
     savedData: IData[] | IFormattedData[],
     savedCategories: ICategory[],
   ) => IFormattedData[];
+  getFutureTransactions: () => Promise<void>;
+  updateOneTransaction: (updatedData: IData) => void;
 }

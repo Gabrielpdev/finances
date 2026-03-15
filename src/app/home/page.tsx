@@ -2,7 +2,7 @@
 import { useCallback, useContext, useEffect, useState } from "react";
 
 import { months } from "@/constants/months";
-import { ICategory, IData, IShowedData } from "@/types/data";
+import { IFormattedData, IShowedData } from "@/types/data";
 
 import { Loading } from "@/components/loading";
 import { formatToDate } from "@/utils/formatToDate";
@@ -18,7 +18,7 @@ import Select from "@/components/elements/select";
 import { TransactionsContext } from "@/providers/transactions";
 import { DatePickerWithRange } from "@/components/elements/calendar";
 import { Button } from "@/components/ui/button";
-import { PiMagnifyingGlass } from "react-icons/pi";
+import { PiMagnifyingGlass, PiPen } from "react-icons/pi";
 import { toast } from "react-toastify";
 import { deleteTransaction } from "../actions/data/delete";
 
@@ -38,47 +38,46 @@ export default function Home() {
   const [selectedItemToExclude, setSelectedItemToExclude] = useState<string[]>(
     [],
   );
+  const [enableEdit, setEnableEdit] = useState(false);
 
   const { setValue } = useContext(CurrencyContext);
   const { transactions, categories, refreshTransactions, filterDate } =
     useContext(TransactionsContext);
 
-  const removeCreditDatas = useCallback(
-    (data: IData[], savedCategories: ICategory[]) => {
-      try {
-        const dateSet = new Set<string>();
-        const typeSet = new Set<string>();
+  const removeCreditDatas = useCallback((data: IFormattedData[]) => {
+    try {
+      const dateSet = new Set<string>();
+      const typeSet = new Set<string>();
 
-        for (const obj of data) {
-          const date = formatToDate(obj);
-          const monthKey = `${months[date.getMonth()]}-${date.getFullYear()}`;
-          dateSet.add(monthKey);
-          typeSet.add(obj.type);
-        }
-
-        const sorted = [...data].sort((a, b) => {
-          return formatToDate(b).getTime() - formatToDate(a).getTime();
-        });
-
-        const grouped = groupByMonths(sorted, savedCategories);
-        setShowedData(grouped);
-      } catch (error) {
-        console.error("Error:", error);
+      for (const obj of data) {
+        const date = formatToDate(obj);
+        const monthKey = `${months[date.getMonth()]}-${date.getFullYear()}`;
+        dateSet.add(monthKey);
+        typeSet.add(obj.type);
       }
-    },
-    [],
-  );
+
+      const sorted = [...data].sort((a, b) => {
+        return formatToDate(b).getTime() - formatToDate(a).getTime();
+      });
+
+      const grouped = groupByMonths(sorted);
+      setShowedData(grouped);
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  }, []);
 
   const readJsonFile = useCallback(async () => {
     setLoading(true);
     try {
-      removeCreditDatas(transactions, categories);
+      console.log(transactions);
+      removeCreditDatas(transactions);
     } catch (error) {
       console.error("Error:", error);
     } finally {
       setLoading(false);
     }
-  }, [transactions, categories, removeCreditDatas]);
+  }, [transactions, removeCreditDatas]);
 
   useEffect(() => {
     readJsonFile();
@@ -197,8 +196,23 @@ export default function Home() {
           Buscar
           <PiMagnifyingGlass />
         </Button>
+
+        <Button
+          className="flex items-center justify-center bg-yellow-700 hover:bg-yellow-800 text-white max-sm:w-full"
+          onClick={() => setEnableEdit((prev) => !prev)}
+        >
+          Editar
+          <PiPen />
+        </Button>
       </div>
 
+      {Object.entries(showedData)?.[0]?.[0] && (
+        <div className="flex w-full items-center justify-center text-zinc-400 py-4 sticky top-0">
+          <h2 className="text-base text-center">
+            {Object.entries(showedData)?.[0]?.[0]}
+          </h2>
+        </div>
+      )}
       <HeaderTable />
 
       {loading ? (
@@ -206,12 +220,14 @@ export default function Home() {
           <Loading />
         </div>
       ) : (
-        Object.entries(showedData)?.map(([key, month]) => {
+        Object.entries(showedData)?.map(([key, month], index) => {
           return (
             <div key={key} className="gap-1 flex flex-col relative">
-              <div className="flex w-full items-center justify-center text-zinc-400 py-4 sticky top-0">
-                <h2 className="text-base text-center">{key}</h2>
-              </div>
+              {index !== 0 && (
+                <div className="flex w-full items-center justify-center text-zinc-400 py-4 sticky top-0">
+                  <h2 className="text-base text-center">{key}</h2>
+                </div>
+              )}
 
               {month
                 .filter(
@@ -231,6 +247,7 @@ export default function Home() {
                       item={item}
                       selectedItemToExclude={selectedItemToExclude}
                       setSelectedItemToExclude={setSelectedItemToExclude}
+                      enableEdit={enableEdit}
                       onLongPress={handleDeleteItem}
                       key={item.id}
                     />

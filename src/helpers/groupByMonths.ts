@@ -1,9 +1,8 @@
 import { months } from "@/constants/months";
-import { ICategory, IData, IShowedData } from "@/types/data";
+import { IFormattedData, IShowedData } from "@/types/data";
 import { formatToDate } from "@/utils/formatToDate";
-import { getCategory } from "./getCategory";
 
-export const groupByMonths = (data: IData[], categories: ICategory[]) => {
+export const groupByMonths = (data: IFormattedData[]) => {
   return data.reduce((acc, obj) => {
     if (!obj.date) return acc;
 
@@ -13,12 +12,7 @@ export const groupByMonths = (data: IData[], categories: ICategory[]) => {
 
     acc[monthKey] = acc[monthKey] || [];
 
-    const category = getCategory(obj.description, categories);
-
-    acc[monthKey].push({
-      ...obj,
-      category,
-    });
+    acc[monthKey].push(obj);
 
     return acc;
   }, {} as IShowedData);

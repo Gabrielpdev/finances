@@ -9,7 +9,7 @@ import {
 } from "@/types/data";
 import { listCategories } from "@/app/actions/categories/list";
 import { listDatas } from "@/app/actions/data/list";
-import { getCategory } from "@/helpers/getCategory";
+import { defaultCategory, getCategory } from "@/helpers/getCategory";
 import {
   endOfCurrentMonth,
   startOfCurrentMonth,
@@ -24,6 +24,9 @@ export default function TransactionsProvider({
   children: React.ReactNode;
 }) {
   const [transactions, setTransactions] = useState<IFormattedData[]>([]);
+  const [futureTransactions, setFutureTransactions] = useState<
+    IFormattedData[]
+  >([]);
   const [categories, setCategories] = useState<ICategory[]>([]);
 
   const [filterDate, setFilterDate] = useState<DateRange | undefined>({
@@ -45,10 +48,10 @@ export default function TransactionsProvider({
     }
 
     if (transactions.length <= 0) {
-      savedData = await listDatas(
-        filterDate?.from?.getTime() || startOfCurrentMonth.getTime(),
-        filterDate?.to?.getTime() || endOfCurrentMonth.getTime(),
-      );
+      savedData = await listDatas({
+        start: filterDate?.from?.getTime() || startOfCurrentMonth.getTime(),
+        end: filterDate?.to?.getTime() || endOfCurrentMonth.getTime(),
+      });
       console.log("Fetched transactions:", savedData);
     }
 
@@ -74,24 +77,39 @@ export default function TransactionsProvider({
     let transactionsWithCategories: IFormattedData[] = [];
 
     for (const item of savedData) {
-      const estabelecimento = item.description;
+      if (item.categoryId !== "others") {
+        const found = savedCategories.find(
+          (category: ICategory) => category.id === item.categoryId,
+        );
 
-      const category = getCategory(estabelecimento, savedCategories);
+        transactionsWithCategories.push({
+          ...item,
+          category: found || defaultCategory,
+        });
+      } else {
+        const estabelecimento = item.description;
 
-      transactionsWithCategories.push({
-        ...item,
-        category: category,
-      });
+        const category = getCategory(estabelecimento, savedCategories);
+
+        transactionsWithCategories.push({
+          ...item,
+          category: category,
+          categoryId: category.id,
+        });
+      }
     }
 
     return transactionsWithCategories;
   };
 
   const refreshTransactions = async (startDate?: number, endDate?: number) => {
-    const savedData = await listDatas(
-      startDate || filterDate?.from?.getTime() || startOfCurrentMonth.getTime(),
-      endDate || filterDate?.to?.getTime() || endOfCurrentMonth.getTime(),
-    );
+    const savedData = await listDatas({
+      start:
+        startDate ||
+        filterDate?.from?.getTime() ||
+        startOfCurrentMonth.getTime(),
+      end: endDate || filterDate?.to?.getTime() || endOfCurrentMonth.getTime(),
+    });
     putCategoriesOnTransactions(savedData, categories);
   };
 
@@ -101,9 +119,41 @@ export default function TransactionsProvider({
     putCategoriesOnTransactions(transactions, savedCategories);
   };
 
-  function updateLocalTransactions() {
+  const updateLocalTransactions = () => {
     putCategoriesOnTransactions(transactions, categories);
-  }
+  };
+
+  const getFutureTransactions = async () => {
+    const now = new Date().getTime();
+
+    const savedData = await listDatas({
+      start: now,
+    });
+
+    const transactionsWithCategories = returnTransactionWithCategories(
+      savedData,
+      categories,
+    );
+
+    setFutureTransactions(transactionsWithCategories);
+  };
+
+  const updateOneTransaction = (data: IData) => {
+    const newTransactions = transactions.map((transaction) => {
+      if (transaction.id === data.id) {
+        return {
+          ...transaction,
+          ...data,
+          category: categories.find(
+            (category) => category.id === data.categoryId,
+          )!,
+        };
+      }
+      return transaction;
+    });
+
+    setTransactions(newTransactions);
+  };
 
   useEffect(() => {
     init();
@@ -122,6 +172,9 @@ export default function TransactionsProvider({
         refreshCategories,
         updateLocalTransactions,
         returnTransactionWithCategories,
+        getFutureTransactions,
+        futureTransactions,
+        updateOneTransaction,
       }}
     >
       {children}

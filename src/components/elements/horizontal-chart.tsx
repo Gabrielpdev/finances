@@ -13,13 +13,15 @@ const SimpleHorizontalBarChart = ({ data }: IBarChartProps) => {
   const totalValue = data.reduce((acc, curr) => acc + curr.value, 0);
 
   return (
-    <div className="flex flex-col p-4 w-full max-w-md">
+    <div className="flex flex-col p-4 ">
       {data.map((entry) => (
         <div
           key={entry.name}
           className="grid grid-cols-4 gap-4 items-center mb-2"
         >
-          <span className="ml-2 font-medium max-sm:text-sm">{entry.name}:</span>
+          <span className="ml-2 font-medium w-fit max-sm:text-sm">
+            {entry.name}:
+          </span>
 
           <div className="flex-1 col-span-2 w-full h-6 bg-gray-200 rounded-md overflow-hidden relative">
             <div

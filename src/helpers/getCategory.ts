@@ -2,6 +2,14 @@
 
 import { ICategory } from "@/types/data";
 
+export const defaultCategory = {
+  name: "Outros",
+  icon: "",
+  id: "others",
+  list: [],
+  color: "#0088FE",
+};
+
 export const getCategory = (value: string, categories: ICategory[]) => {
   const found = categories.find((category: ICategory) =>
     category.list.some((item) => {
@@ -9,13 +17,5 @@ export const getCategory = (value: string, categories: ICategory[]) => {
     }),
   );
 
-  return found
-    ? found
-    : {
-        name: "Outros",
-        icon: "",
-        id: "others",
-        list: [],
-        color: "#0088FE",
-      };
+  return found ? found : defaultCategory;
 };

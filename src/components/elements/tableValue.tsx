@@ -1,10 +1,23 @@
 import PiIcons from "@/components/elements/icons";
-import { IData, IFormattedData } from "@/types/data";
+import { IFormattedData } from "@/types/data";
+import Select from "./select";
+import { useContext } from "react";
+import { TransactionsContext } from "@/providers/transactions";
+import { cn } from "@/lib/utils";
 
 interface TableValueProps {
   item: IFormattedData;
   type: string;
-  shouldWarnXpItem?: boolean;
+  changes?: {
+    label: string;
+    value: string | undefined;
+  };
+  setChanges?: React.Dispatch<
+    React.SetStateAction<{
+      label: string;
+      value: string | undefined;
+    }>
+  >;
 }
 
 export const getColor = (item: IFormattedData, type: string) => {
@@ -16,8 +29,15 @@ export const getColor = (item: IFormattedData, type: string) => {
   return "text-blue-950";
 };
 
-export const TableValue = ({ item, type }: TableValueProps) => {
-  const className = `w-full flex gap-1 items-center capitalize justify-center border-r-2 ${getColor(
+export const TableValue = ({
+  item,
+  type,
+  setChanges,
+  changes,
+}: TableValueProps) => {
+  const { categories } = useContext(TransactionsContext);
+
+  const className = `w-full h-full flex gap-1 items-center capitalize justify-center border-r-2 ${getColor(
     item,
     type,
   )} max-sm:px-2`;
@@ -48,6 +68,24 @@ export const TableValue = ({ item, type }: TableValueProps) => {
   }
 
   if (type === "Categoria") {
+    if (setChanges) {
+      return (
+        <Select
+          className={cn("w-full px-3", className)}
+          options={[...categories.map((cat) => cat.name), "Outros"]}
+          selected={changes?.label || "Outros"}
+          onSelect={(value) =>
+            setChanges(() => {
+              const categoryId =
+                categories.find((cat) => cat.name === value)?.id || "others";
+
+              return { label: value, value: categoryId };
+            })
+          }
+        />
+      );
+    }
+
     return (
       <span className={className}>
         {item.category.name} <PiIcons iconName={item.category.icon} />{" "}

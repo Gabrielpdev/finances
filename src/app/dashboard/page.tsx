@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useContext, useEffect, useState } from "react";
 
-import { CurrencyContext } from "@/providers/currency";
+// import { CurrencyContext } from "@/providers/currency";
 
 import { groupCategories } from "@/helpers/getValuesOnCategories";
 import SimpleBarChart, { IBarChartData } from "@/components/elements/bar-chart";
@@ -17,20 +17,29 @@ import { MouseHandlerDataParam } from "recharts";
 import { DatePickerWithRange } from "@/components/elements/calendar";
 import { PiMagnifyingGlass } from "react-icons/pi";
 import { Button } from "@/components/ui/button";
+import { groupTypes } from "@/helpers/getValuesOnTypes";
 
 export default function Home() {
-  const [chartData, setChartData] = useState<IBarChartData[]>([]);
+  const [chartCategoriesData, setChartCategoriesData] = useState<
+    IBarChartData[]
+  >([]);
+  const [chartTypeData, setChartTypeData] = useState<IBarChartData[]>([]);
 
   const [showedData, setShowedData] = useState<IShowedData>({});
 
-  const { setValue } = useContext(CurrencyContext);
-  const { transactions, categories, filterDate, refreshTransactions } =
-    useContext(TransactionsContext);
+  // const { setValue } = useContext(CurrencyContext);
+  const {
+    transactions,
+    filterDate,
+    refreshTransactions,
+    getFutureTransactions,
+    futureTransactions,
+  } = useContext(TransactionsContext);
 
   const removeCreditDatas = useCallback(async () => {
     try {
-      let inTotal = 0;
-      let outTotal = 0;
+      // let inTotal = 0;
+      // let outTotal = 0;
       const uniqueDateMap = new Map();
 
       transactions.forEach((obj) => {
@@ -41,18 +50,19 @@ export default function Home() {
         uniqueDateMap.set(monthKey, monthKey);
       });
 
-      setValue({
-        in: inTotal.toLocaleString("pt-BR", {
-          style: "currency",
-          currency: "BRL",
-        }),
-        out: outTotal.toLocaleString("pt-BR", {
-          style: "currency",
-          currency: "BRL",
-        }),
-      });
+      // setValue({
+      //   in: inTotal.toLocaleString("pt-BR", {
+      //     style: "currency",
+      //     currency: "BRL",
+      //   }),
+      //   out: outTotal.toLocaleString("pt-BR", {
+      //     style: "currency",
+      //     currency: "BRL",
+      //   }),
+      // });
 
-      setChartData(groupCategories(transactions));
+      setChartCategoriesData(groupCategories(transactions));
+      setChartTypeData(groupTypes(transactions));
     } catch (error) {
       console.error("Error:", error);
     }
@@ -60,6 +70,7 @@ export default function Home() {
 
   useEffect(() => {
     removeCreditDatas();
+    getFutureTransactions();
   }, [removeCreditDatas]);
 
   const onSelectCategory = useCallback(
@@ -68,9 +79,9 @@ export default function Home() {
         (item) => item.category.name === category.activeLabel,
       );
 
-      setShowedData(groupByMonths(filteredData, categories));
+      setShowedData(groupByMonths(filteredData));
     },
-    [transactions, categories],
+    [transactions],
   );
 
   const searchWithFilters = () => {
@@ -85,10 +96,10 @@ export default function Home() {
   };
 
   return (
-    <div className="flex items-center flex-col p-8 gap-4 w-full mt-5 max-sm:p-2">
+    <div className="flex  flex-col p-8 gap-4 w-full mt-5 max-sm:p-2">
       <h2 className="text-5xl font-semibold">Visão Geral</h2>
 
-      <div className="flex items-end gap-4 w-full mt-5 m-auto">
+      <div className="flex items-end gap-4 w-full mt-5 m-auto max-sm:flex-col">
         <DatePickerWithRange />
 
         <Button
@@ -100,20 +111,53 @@ export default function Home() {
         </Button>
       </div>
 
-      <div className="flex items-center flex-col justify-center gap-4 w-full mt-5 bg-white rounded-lg shadow-md">
+      <h4 className="text-2xl flex flex-col font-semibold">
+        Gastos futuros:
+        <span className="text-sm  text-gray-600">
+          após {new Date()?.toLocaleDateString("pt-BR")}
+        </span>
+      </h4>
+      <div className="flex items-center flex-col justify-center gap-4 w-full bg-white rounded-lg shadow-md">
+        {!!futureTransactions.length ? (
+          futureTransactions.map((item) => (
+            <DataTable item={item} key={item.id} />
+          ))
+        ) : (
+          <div className="flex items-center justify-center p-6 gap-4 w-full max-sm:flex-wrap max-sm:p-1">
+            Nenhuma transação futura encontrada.
+          </div>
+        )}
+      </div>
+
+      <h4 className="text-2xl font-semibold">Gastos no mês</h4>
+      <div className="flex items-center flex-col justify-center gap-4 w-full bg-white rounded-lg shadow-md">
         <div className="flex items-center justify-center p-6 gap-4 w-full max-sm:flex-wrap max-sm:p-1">
-          <SimpleBarChart data={chartData} onSelectBar={onSelectCategory} />
-          <SimpleHorizontalBarChart data={chartData} />
+          <SimpleBarChart
+            data={chartCategoriesData}
+            onSelectBar={onSelectCategory}
+          />
+          <div className="flex flex-col gap-4 w-full max-sm:flex-wrap">
+            <SimpleHorizontalBarChart data={chartCategoriesData} />
+            <SimpleHorizontalBarChart data={chartTypeData} />
+          </div>
         </div>
 
+        {Object.entries(showedData)?.[0]?.[0] && (
+          <div className="flex w-full items-center justify-center text-zinc-400 py-4 sticky top-0">
+            <h2 className="text-base text-center">
+              {Object.entries(showedData)?.[0]?.[0]}
+            </h2>
+          </div>
+        )}
         {!!Object.keys(showedData).length && <HeaderTable />}
-
-        {Object.entries(showedData)?.map(([key, month]) => {
+        {Object.entries(showedData)?.map(([key, month], index) => {
           return (
             <div key={key} className="gap-1 flex flex-col w-full relative">
-              <div className="flex w-full items-center justify-center text-zinc-400 py-4 sticky top-0">
-                <h2 className="text-base text-center">{key}</h2>
-              </div>
+              {index !== 0 && (
+                <div className="flex w-full items-center justify-center text-zinc-400 py-4 sticky top-0">
+                  <h2 className="text-base text-center">{key}</h2>
+                </div>
+              )}
 
               {month.map((item) => {
                 return <DataTable item={item} key={item.id} />;

@@ -38,6 +38,7 @@ export function formatXpCSV(csv: string, categories: ICategory[]) {
 
   formatParcelaDate(result);
 
+  addAllFutureInstallments(result);
   return result;
 }
 
@@ -77,6 +78,11 @@ const formatValues = ({
 
   if (type === "Data" && value) {
     json.date = value;
+
+    const [day, month, year] = value.split("/");
+    const date = new Date(`${year}-${month}-${day}T00:00:00`);
+
+    json.timestamp = date.getTime();
   }
 
   if (type === "Parcela" && value) {
@@ -156,4 +162,52 @@ const formatParcelaDate = (result: IData[]) => {
   }
 
   return result;
+};
+
+const addAllFutureInstallments = (result: IData[]) => {
+  const installments = result.filter((item) => item.installment !== "-");
+
+  installments.forEach((item) => {
+    const [day, month, year] = item.date.split("/").map(Number);
+    const installmentNumber = Number(item.installment.split(" de ")[0]);
+    const totalInstallments = Number(item.installment.split(" de ")[1]);
+
+    if (installmentNumber >= totalInstallments) {
+      return null;
+    }
+
+    new Array(totalInstallments - installmentNumber)
+      .fill(null)
+      .map((_, index) => {
+        const nextMonth = month === 12 ? 1 : month + (index + 1);
+        const nextYear = month === 12 ? year + (index + 1) : year;
+
+        const nextDate = `${String(day).padStart(2, "0")}/${String(
+          nextMonth,
+        ).padStart(2, "0")}/${nextYear}`;
+        const nextInstallment = `${installmentNumber + (index + 1)} de ${totalInstallments}`;
+
+        const newItem = {
+          ...item,
+          id: generateId([
+            nextDate,
+            item.description,
+            item.holder,
+            item.amount.toString(),
+            nextInstallment,
+          ]),
+          date: nextDate,
+          installment: nextInstallment,
+          timestamp: new Date(
+            `${nextYear}-${String(nextMonth).padStart(2, "0")}-${String(
+              day,
+            ).padStart(2, "0")}T00:00:00`,
+          ).getTime(),
+        } as IData;
+
+        result.push(newItem);
+      });
+
+    return item;
+  });
 };
