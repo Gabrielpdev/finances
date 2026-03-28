@@ -10,6 +10,7 @@ import { CurrencyContext } from "@/providers/currency";
 import { groupByMonths } from "@/helpers/groupByMonths";
 import { DataTable } from "@/components/modules/dataTable";
 import { HeaderTable } from "@/components/modules/headerTable";
+import { ConfirmDeleteModal } from "@/components/modules/confirmDeleteModal";
 
 import { getCategory } from "@/helpers/getCategory";
 
@@ -39,6 +40,9 @@ export default function Home() {
     [],
   );
   const [enableEdit, setEnableEdit] = useState(false);
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<IFormattedData | null>(null);
 
   const { setValue } = useContext(CurrencyContext);
   const { transactions, categories, refreshTransactions, filterDate } =
@@ -147,15 +151,19 @@ export default function Home() {
     }
   };
 
-  const handleDeleteItem = async (id: string) => {
-    if (!confirm("Tem certeza que deseja excluir este item?")) {
-      return;
-    }
+  const handleDeleteItem = (item: IFormattedData) => {
+    setItemToDelete(item);
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete) return;
 
     try {
-      await deleteTransaction({ id });
-
+      await deleteTransaction({ id: itemToDelete.id });
       refreshTransactions();
+      setDeleteModalOpen(false);
+      setItemToDelete(null);
       toast.success("Item excluído com sucesso!");
     } catch (error) {
       console.error("Error deleting item:", error);
@@ -257,6 +265,19 @@ export default function Home() {
           );
         })
       )}
+
+      <ConfirmDeleteModal
+        isOpen={deleteModalOpen}
+        title="Confirmar Exclusão"
+        description={`Tem certeza que deseja excluir "${itemToDelete?.description}" ?`}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => {
+          setDeleteModalOpen(false);
+          setItemToDelete(null);
+        }}
+        confirmText="Excluir"
+        cancelText="Cancelar"
+      />
     </div>
   );
 }

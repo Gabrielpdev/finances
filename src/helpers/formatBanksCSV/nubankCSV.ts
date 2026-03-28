@@ -1,4 +1,4 @@
-import { ICategory } from "@/types/data";
+import { ICategory, IData } from "@/types/data";
 import { getCategory } from "../getCategory";
 
 export function formatNubankCSV(csv: string, categories: ICategory[]) {
@@ -13,7 +13,7 @@ export function formatNubankCSV(csv: string, categories: ICategory[]) {
   });
 
   for (var i = 1; i < lines.length; i++) {
-    var obj = {} as any;
+    var obj = {} as IData;
     var currentLine = lines[i].split(",");
 
     for (var j = 0; j < formattedHeaders.length; j++) {
@@ -24,7 +24,7 @@ export function formatNubankCSV(csv: string, categories: ICategory[]) {
         categories,
       });
     }
-    obj["Tipo"] = "Nubank";
+    obj.type = "Nubank";
 
     result.push(obj);
   }
@@ -37,14 +37,14 @@ const formatValues = ({
   value,
   categories,
 }: {
-  json: Record<string, any>;
+  json: IData;
   type: string;
   value: string;
   categories: ICategory[];
 }) => {
   if (type === "Estabelecimento" && value) {
     if (value.includes("Transferência")) {
-      json[type] = value
+      json.description = value
         .replace(/^((?:[^-]*-){1}[^-]*)-.*$/, "$1")
         .replace(/^[^-]*recebida[^-]*-/, "PIX de") // Replace "recebida" with "PIX de"
         .replace(/^[^-]*enviada[^-]*-/i, "PIX para") // Replace "enviada" with "PIX para"
@@ -55,20 +55,39 @@ const formatValues = ({
     }
 
     if (value.includes("Pagamento de boleto")) {
-      json[type] = value.replace(/-.*$/, "").trim();
+      json.description = value.replace(/-.*$/, "").trim();
       return;
     }
 
     const category = getCategory(value, categories);
 
-    json["categoryId"] = category.id;
+    json.categoryId = category.id;
   }
 
   if (type === "Valor" && value) {
     const valueNumber = Number(value.replace("R$ ", ""));
-    json[type] = valueNumber;
+    json.amount = valueNumber;
     return;
   }
 
-  json[type] = value;
+  if (type === "Data" && value) {
+    json.date = value;
+
+    const [day, month, year] = value.split("/");
+    const date = new Date(`${year}-${month}-${day}T00:00:00`);
+
+    json.timestamp = date.getTime();
+  }
+
+  if (type === "Parcela" && value) {
+    json.installment = value;
+  }
+
+  if (type === "Portador" && value) {
+    json.holder = value;
+  }
+
+  if (type === "Identificador" && value) {
+    json.id = value;
+  }
 };

@@ -13,7 +13,7 @@ export interface DataTableProps {
   selectedItemToExclude?: string[];
   setSelectedItemToExclude?: React.Dispatch<React.SetStateAction<string[]>>;
   shouldWarnXpItem?: boolean;
-  onLongPress?: (id: string) => void;
+  onLongPress?: (item: IFormattedData) => void;
   enableEdit?: boolean;
 }
 
@@ -36,7 +36,7 @@ export function DataTable({
 
   const handleDoubleClick = () => {
     if (!onLongPress) return;
-    onLongPress(item.id);
+    onLongPress(item);
   };
 
   const onSelectItemToExclude = (itemId: string) => {
@@ -85,7 +85,7 @@ export function DataTable({
         selectedItemToExclude?.includes(item.id) && "opacity-60",
         shouldWarnXpItem &&
           item.description
-            .toLocaleLowerCase()
+            ?.toLocaleLowerCase()
             .includes("conta banco santander") &&
           "bg-yellow-200",
       )}

@@ -1,5 +1,5 @@
 "use client";
-import { useState, createContext, useEffect, useCallback } from "react";
+import { useState, createContext, useEffect, useRef } from "react";
 
 import {
   ITransactionsContext,
@@ -23,6 +23,7 @@ export default function TransactionsProvider({
 }: {
   children: React.ReactNode;
 }) {
+  const isInitializedRef = useRef(false);
   const [transactions, setTransactions] = useState<IFormattedData[]>([]);
   const [futureTransactions, setFutureTransactions] = useState<
     IFormattedData[]
@@ -33,42 +34,6 @@ export default function TransactionsProvider({
     from: startOfCurrentMonth,
     to: endOfCurrentMonth,
   });
-
-  const init = async () => {
-    console.log("Initializing TransactionsProvider...");
-
-    let savedCategories = categories;
-    let savedData: IData[] = [];
-
-    if (categories.length <= 0) {
-      savedCategories = await listCategories();
-
-      console.log("Fetched categories:", savedCategories);
-      setCategories(savedCategories);
-    }
-
-    if (transactions.length <= 0) {
-      savedData = await listDatas({
-        start: filterDate?.from?.getTime() || startOfCurrentMonth.getTime(),
-        end: filterDate?.to?.getTime() || endOfCurrentMonth.getTime(),
-      });
-      console.log("Fetched transactions:", savedData);
-    }
-
-    putCategoriesOnTransactions(savedData, savedCategories);
-  };
-
-  const putCategoriesOnTransactions = async (
-    savedData: IData[] | IFormattedData[],
-    savedCategories: ICategory[],
-  ) => {
-    let transactionsWithCategories = returnTransactionWithCategories(
-      savedData,
-      savedCategories,
-    );
-
-    setTransactions(transactionsWithCategories);
-  };
 
   const returnTransactionWithCategories = (
     savedData: IData[] | IFormattedData[],
@@ -88,7 +53,6 @@ export default function TransactionsProvider({
         });
       } else {
         const estabelecimento = item.description;
-
         const category = getCategory(estabelecimento, savedCategories);
 
         transactionsWithCategories.push({
@@ -100,6 +64,17 @@ export default function TransactionsProvider({
     }
 
     return transactionsWithCategories;
+  };
+
+  const putCategoriesOnTransactions = (
+    savedData: IData[] | IFormattedData[],
+    savedCategories: ICategory[],
+  ) => {
+    const transactionsWithCategories = returnTransactionWithCategories(
+      savedData,
+      savedCategories,
+    );
+    setTransactions(transactionsWithCategories);
   };
 
   const refreshTransactions = async (startDate?: number, endDate?: number) => {
@@ -119,8 +94,17 @@ export default function TransactionsProvider({
     putCategoriesOnTransactions(transactions, savedCategories);
   };
 
-  const updateLocalTransactions = () => {
-    putCategoriesOnTransactions(transactions, categories);
+  const updateLocalData = ({
+    savedData,
+    savedCategories,
+  }: {
+    savedData?: IData[] | IFormattedData[];
+    savedCategories?: ICategory[];
+  }) => {
+    const transactionToUpdate = savedData || transactions;
+    const categoriesToUpdate = savedCategories || categories;
+
+    putCategoriesOnTransactions(transactionToUpdate, categoriesToUpdate);
   };
 
   const getFutureTransactions = async () => {
@@ -155,7 +139,31 @@ export default function TransactionsProvider({
     setTransactions(newTransactions);
   };
 
+  // Initialize on mount
   useEffect(() => {
+    if (isInitializedRef.current) return;
+    isInitializedRef.current = true;
+
+    const init = async () => {
+      console.log("Initializing TransactionsProvider...");
+
+      const savedCategories = await listCategories();
+      console.log("Fetched categories:", savedCategories);
+      setCategories(savedCategories);
+
+      const savedData = await listDatas({
+        start: startOfCurrentMonth.getTime(),
+        end: endOfCurrentMonth.getTime(),
+      });
+      console.log("Fetched transactions:", savedData);
+
+      const transactionsWithCategories = returnTransactionWithCategories(
+        savedData,
+        savedCategories,
+      );
+      setTransactions(transactionsWithCategories);
+    };
+
     init();
   }, []);
 
@@ -170,7 +178,7 @@ export default function TransactionsProvider({
         setCategories,
         refreshTransactions,
         refreshCategories,
-        updateLocalTransactions,
+        updateLocalData,
         returnTransactionWithCategories,
         getFutureTransactions,
         futureTransactions,

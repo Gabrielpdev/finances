@@ -39,28 +39,30 @@ export function formatMercadoPagoCSV(csv: string, categories: ICategory[]) {
     }
   }
 
-  let totalRendimentos = 0;
-  let lastData = {} as IData;
+  // let totalRendimentos = 0;
+  // let lastData = {} as IData;
 
-  const groupRendimentos = result.filter((item) => {
-    if (item.description !== "Rendimentos ") {
-      return true;
-    }
+  // const groupRendimentos = result.filter((item) => {
+  //   if (item.description !== "Rendimentos ") {
+  //     return true;
+  //   }
 
-    totalRendimentos += item.amount;
-    lastData = {
-      ...result[result.length - 2],
-      id: new Date().getTime().toString(),
-      description: "Rendimentos Totais",
-      amount: totalRendimentos,
-    };
+  //   totalRendimentos += item.amount;
+  //   lastData = {
+  //     ...result[result.length - 2],
+  //     id: new Date().getTime().toString(),
+  //     description: "Rendimentos Totais",
+  //     amount: totalRendimentos,
+  //   };
 
-    return false;
-  });
+  //   return false;
+  // });
 
-  const resultWithRendimentos = groupRendimentos.with(-1, lastData);
+  // const resultWithRendimentos = groupRendimentos.with(-1, lastData);
 
-  return resultWithRendimentos;
+  // return resultWithRendimentos;
+
+  return result.filter((item) => item.description !== "Rendimentos ");
 }
 
 const formatValues = ({
@@ -136,5 +138,5 @@ const checkIfShouldAdd = (obj: IData) => {
     return true;
   }
 
-  return true;
+  return false;
 };

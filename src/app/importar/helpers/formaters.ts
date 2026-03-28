@@ -13,10 +13,8 @@ export const removeSelectedItem = (
   json: IData[],
   selectedToDelete: string[],
 ) => {
-  const filtered = json?.filter((item: any) => {
-    const removed = selectedToDelete.some(
-      (selected) => selected === item["Identificador"],
-    );
+  const filtered = json?.filter((item) => {
+    const removed = selectedToDelete.some((selected) => selected === item.id);
 
     return !removed;
   });

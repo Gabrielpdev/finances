@@ -1,5 +1,5 @@
 "use client";
-import { useState, createContext, useEffect } from "react";
+import { useState, createContext, useEffect, useRef } from "react";
 
 import {
   GoogleAuthProvider,
@@ -25,16 +25,16 @@ export default function FirebaseProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const { replace } = useRouter();
+  const { push } = useRouter();
+  const isMountedRef = useRef(false);
 
   const [user, setUser] = useState<any>(null);
-
   const [isUserAllowed, setIsUserAllowed] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [redirectTo, setRedirectTo] = useState<string | null>(null);
 
   const login = async () => {
     setLoading(true);
-
     const userCred = await signInWithPopup(auth, provider);
     setUser(userCred.user);
   };
@@ -45,46 +45,67 @@ export default function FirebaseProvider({
     setIsUserAllowed(false);
   };
 
-  const onChangeAuth = async (user: User | null) => {
-    if (!user) {
-      replace("/login");
-      setLoading(false);
-      return;
+  // Handle redirects in a separate effect
+  useEffect(() => {
+    if (redirectTo) {
+      push(redirectTo);
     }
-
-    const token = await user.getIdToken();
-    await createSession(token!);
-    const result = await checkUserToken();
-
-    if (!result.valid) {
-      if (result.reason === "expired") {
-        // Force refresh the Firebase ID token and update the session cookie
-        const refreshedToken = await user.getIdToken(true);
-        await createSession(refreshedToken!);
-
-        const retryResult = await checkUserToken();
-
-        if (!retryResult.valid) {
-          setLoading(false);
-          setIsUserAllowed(false);
-          replace("/not-allowed");
-          return;
-        }
-      } else {
-        setLoading(false);
-        setIsUserAllowed(false);
-        replace("/not-allowed");
-        return;
-      }
-    }
-
-    setIsUserAllowed(true);
-    setUser(user);
-    setLoading(false);
-  };
+  }, [redirectTo, push]);
 
   useEffect(() => {
-    auth.onAuthStateChanged(onChangeAuth);
+    isMountedRef.current = true;
+
+    const unsubscribe = auth.onAuthStateChanged(async (user: User | null) => {
+      if (!isMountedRef.current) return;
+
+      console.log(user);
+
+      if (!user) {
+        setLoading(false);
+        setIsUserAllowed(false);
+        setRedirectTo("/login");
+        return;
+      }
+
+      try {
+        const token = await user.getIdToken();
+        await createSession(token!);
+        const result = await checkUserToken();
+
+        if (!result.valid) {
+          if (result.reason === "expired") {
+            const refreshedToken = await user.getIdToken(true);
+            await createSession(refreshedToken!);
+            const retryResult = await checkUserToken();
+
+            if (!retryResult.valid) {
+              setLoading(false);
+              setIsUserAllowed(false);
+              setRedirectTo("/not-allowed");
+              return;
+            }
+          } else {
+            setLoading(false);
+            setIsUserAllowed(false);
+            setRedirectTo("/not-allowed");
+            return;
+          }
+        }
+
+        setUser(user);
+        setIsUserAllowed(true);
+        setLoading(false);
+      } catch (error) {
+        console.error("Auth error:", error);
+        setLoading(false);
+        setIsUserAllowed(false);
+      }
+    });
+
+    return () => {
+      isMountedRef.current = false;
+      unsubscribe();
+    };
   }, []);
 
   if (loading) {

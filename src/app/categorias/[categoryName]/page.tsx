@@ -21,7 +21,8 @@ export default function CategoryName() {
   const [loading, setLoading] = useState(true);
   const [addField, setAddField] = useState(false);
 
-  const { setCategories, categories } = useContext(TransactionsContext);
+  const { setCategories, categories, updateLocalData } =
+    useContext(TransactionsContext);
 
   const readJsonFile = useCallback(async () => {
     setLoading(true);
@@ -79,6 +80,10 @@ export default function CategoryName() {
         list: [...selectedCategory.list, value],
       });
       setAddField(false);
+      updateLocalData({
+        savedCategories: newCategories,
+      });
+      toast.success("Valor adicionado com sucesso!");
     }
   };
 

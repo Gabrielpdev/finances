@@ -22,7 +22,7 @@ export default function middleware(req: NextRequest) {
   }
 
   if (hasSession && (isAuthPage || pathname === "/")) {
-    return NextResponse.redirect(new URL("/dashboard", origin));
+    return NextResponse.redirect(new URL("/home", origin));
   }
 
   return NextResponse.next();
