@@ -80,8 +80,8 @@ export function DataTable({
   return (
     <div
       className={cn(
-        "grid grid-cols-[repeat(40,_minmax(0,_1fr))] text-center bg-white p-5 pr-1 rounded-md w-full",
-        "max-sm:flex max-sm:flex-wrap max-sm:justify-center max-sm:relative max-sm:p-0 max-sm:py-5 max-sm:pl-5",
+        "grid grid-cols-[repeat(41,_minmax(0,_1fr))] text-center bg-white p-5 pr-2 rounded-md w-full",
+        "max-sm:gap-4 max-sm:grid-cols-[repeat(2,_minmax(0,_1fr))] max-sm:flex-wrap max-sm:justify-center max-sm:relative max-sm:p-2 max-sm:py-2 max-sm:pl-2",
         selectedItemToExclude?.includes(item.id) && "opacity-60",
         shouldWarnXpItem &&
           item.description
@@ -94,11 +94,14 @@ export function DataTable({
       {header.map((headerItem) => (
         <div
           key={headerItem}
-          className={`flex items-center justify-between flex-col ${
+          className={cn(
+            `flex items-center justify-between flex-col`,
             headerItem === "Estabelecimento"
-              ? "col-[span_21] max-sm:w-full"
-              : "col-[span_6]"
-          }`}
+              ? "col-[span_21] max-sm:col-[span_2]"
+              : "col-[span_6] max-sm:col-[span_2]",
+            (headerItem === "Categoria" || headerItem === "Data") &&
+              "max-sm:col-[span_1]",
+          )}
         >
           <TableValue
             item={item}
@@ -111,7 +114,7 @@ export function DataTable({
       {!!setSelectedItemToExclude && !enableEdit && (
         <button
           onClick={() => onSelectItemToExclude(item.id)}
-          className={`flex items-center justify-center flex-col col-span-1 max-sm:px-2 max-sm:absolute max-sm:top-1/2 max-sm:-translate-y-1/2 max-sm:left-1 max-sm:text-2xl`}
+          className={`flex items-center justify-center flex-col col-span-2  w-full h-[34px] max-sm:w-[34px] max-sm:px-2 max-sm:absolute max-sm:top-1/2 max-sm:-translate-y-1/2 max-sm:right-3 max-sm:text-2xl`}
         >
           <PiXCircleLight />
         </button>
@@ -120,7 +123,7 @@ export function DataTable({
         <button
           disabled={changes.value === item.category.id}
           onClick={handleUpdateTransaction}
-          className={`disabled:opacity-50 disabled:cursor-not-allowed bg-green-700 w-[24px] ml-1 rounded-full hover:bg-green-800 flex items-center justify-center flex-col col-span-1 max-sm:px-2 max-sm:absolute max-sm:top-1/2 max-sm:-translate-y-1/2 max-sm:left-1 max-sm:text-2xl`}
+          className={`disabled:opacity-50 disabled:cursor-not-allowed bg-green-700 w-full h-[34px] ml-1 rounded-md text-xl hover:bg-green-800 flex items-center justify-center flex-col col-span-2 max-sm:w-[34px] max-sm:px-2 max-sm:absolute max-sm:top-1/2 max-sm:-translate-y-1/2 max-sm:right-3 max-sm:text-2xl`}
         >
           <PiCheck className="text-white" />
         </button>

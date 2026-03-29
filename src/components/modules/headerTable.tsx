@@ -11,7 +11,7 @@ export function HeaderTable() {
   return (
     <div className="border py-3 w-full bg-neutral-200 max-sm:hidden">
       <div
-        className={`grid grid-cols-[repeat(40,_minmax(0,_1fr))] text-center`}
+        className={`grid grid-cols-[repeat(41,_minmax(0,_1fr))] text-center`}
       >
         {header.map((item) => (
           <span

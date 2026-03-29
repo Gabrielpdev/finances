@@ -230,7 +230,7 @@ export default function Home() {
       ) : (
         Object.entries(showedData)?.map(([key, month], index) => {
           return (
-            <div key={key} className="gap-1 flex flex-col relative">
+            <div key={key} className="gap-1 flex flex-col relative px-2">
               {index !== 0 && (
                 <div className="flex w-full items-center justify-center text-zinc-400 py-4 sticky top-0">
                   <h2 className="text-base text-center">{key}</h2>

@@ -40,10 +40,11 @@ export const TableValue = ({
   const className = `w-full h-full flex gap-1 items-center capitalize justify-center border-r-2 ${getColor(
     item,
     type,
-  )} max-sm:px-2`;
+  )} max-sm:px-2 max-sm:justify-start max-sm:border-none`;
 
   if (type === "Estabelecimento") {
-    const establishmentClassName = `w-full flex items-center capitalize border-r-2 text-blue-950 max-sm:px-2 max-sm:w-full max-sm:justify-center`;
+    const establishmentClassName = `w-full  h-full flex items-center capitalize border-r-2 text-blue-950 
+    max-sm:px-2 max-sm:w-full max-sm:border-none max-sm:text-left max-sm:font-medium`;
 
     if (item.installment) {
       const parcelaFormatted = `${item.description} ${
@@ -63,7 +64,11 @@ export const TableValue = ({
     });
 
     return (
-      <span className={`${className} max-sm:border-l-2`}>{currencyValue}</span>
+      <span
+        className={`${className} max-sm:border-l-2 max-sm:text-3xl max-sm:text-left`}
+      >
+        {currencyValue}
+      </span>
     );
   }
 
@@ -71,7 +76,7 @@ export const TableValue = ({
     if (setChanges) {
       return (
         <Select
-          className={cn("w-full px-3", className)}
+          className={cn(className, "w-full px-3 max-sm:justify-between")}
           options={[...categories.map((cat) => cat.name), "Outros"]}
           selected={changes?.label || "Outros"}
           onSelect={(value) =>
@@ -94,7 +99,9 @@ export const TableValue = ({
   }
 
   if (type === "Data") {
-    return <span className={className}>{item.date}</span>;
+    return (
+      <span className={`${className} max-sm:justify-end `}>{item.date}</span>
+    );
   }
 
   return <span className={className} />;
