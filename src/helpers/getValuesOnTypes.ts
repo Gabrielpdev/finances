@@ -13,7 +13,7 @@ export const groupTypes = (data: IFormattedData[]) => {
     totalByCategories[item.type] = {
       value:
         (totalByCategories[item.type]?.value ?? 0) + Number(item.amount) * -1,
-      fill: item.category.color,
+      fill: item.type === "Xp" ? "#000" : "#3483fa",
     };
   });
 

@@ -90,7 +90,7 @@ export default function CategoryName() {
         });
 
         updateCategoryDataLocally(newCategoryData);
-        toast.success("Valor adicionado com sucesso!");
+        toast.success("Categoria atualizada com sucesso!");
       }
     } catch (error) {
       console.error("Failed to update category:", error);
@@ -266,6 +266,7 @@ export default function CategoryName() {
                 </label>
                 <input
                   // ref={inputRef}
+                  defaultValue={selectedCategory?.goal}
                   id="meta"
                   type="number"
                   className="flex text-blue-950 w-full p-2 rounded-md"
