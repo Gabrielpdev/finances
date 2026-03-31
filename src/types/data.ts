@@ -20,6 +20,7 @@ export interface ICategory {
   list: string[];
   name: string;
   color: string;
+  goal: number;
 }
 
 export interface IShowedData {

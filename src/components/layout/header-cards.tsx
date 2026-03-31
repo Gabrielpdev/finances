@@ -3,6 +3,11 @@ import { useContext } from "react";
 import Card from "../elements/cards";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { CurrencyContext } from "@/providers/currency";
+import {
+  PiArrowArcLeft,
+  PiArrowBendDownLeft,
+  PiArrowCircleLeft,
+} from "react-icons/pi";
 
 export default function HeaderDescription() {
   const path = usePathname();
@@ -35,7 +40,9 @@ export default function HeaderDescription() {
     return (
       <h2 className="flex items-center w-full justify-between gap-2 text-4xl mb-5 text-white font-extrabold capitalize max-sm:text-2xl max-sm:mb-2">
         <div className="flex items-center gap-2">
-          <button onClick={back}>{`<`}</button>
+          <button onClick={back}>
+            <PiArrowCircleLeft />
+          </button>
           {path.replace("/", "")}
         </div>
       </h2>
@@ -44,7 +51,9 @@ export default function HeaderDescription() {
   if (path.includes(params.categoryName as string))
     return (
       <h2 className="flex items-center justify-center gap-2 text-4xl mb-5 text-white font-extrabold capitalize max-sm:text-2xl">
-        <button onClick={back}>{`<`}</button>
+        <button onClick={back}>
+          <PiArrowCircleLeft />
+        </button>
         {params.categoryName}
       </h2>
     );

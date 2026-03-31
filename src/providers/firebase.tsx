@@ -27,11 +27,11 @@ export default function FirebaseProvider({
 }) {
   const { push } = useRouter();
   const isMountedRef = useRef(false);
+  const redirectRef = useRef<string | null>(null);
 
   const [user, setUser] = useState<any>(null);
   const [isUserAllowed, setIsUserAllowed] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [redirectTo, setRedirectTo] = useState<string | null>(null);
 
   const login = async () => {
     setLoading(true);
@@ -45,12 +45,14 @@ export default function FirebaseProvider({
     setIsUserAllowed(false);
   };
 
-  // Handle redirects in a separate effect
+  // Handle redirects immediately when needed, not via state
   useEffect(() => {
-    if (redirectTo) {
-      push(redirectTo);
+    if (redirectRef.current) {
+      const path = redirectRef.current;
+      redirectRef.current = null;
+      push(path);
     }
-  }, [redirectTo, push]);
+  }, [push]);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -63,7 +65,15 @@ export default function FirebaseProvider({
       if (!user) {
         setLoading(false);
         setIsUserAllowed(false);
-        setRedirectTo("/login");
+        redirectRef.current = "/login";
+        // Schedule redirect outside of this callback
+        setTimeout(() => {
+          if (redirectRef.current) {
+            const path = redirectRef.current;
+            redirectRef.current = null;
+            push(path);
+          }
+        }, 0);
         return;
       }
 
@@ -81,13 +91,27 @@ export default function FirebaseProvider({
             if (!retryResult.valid) {
               setLoading(false);
               setIsUserAllowed(false);
-              setRedirectTo("/not-allowed");
+              redirectRef.current = "/not-allowed";
+              setTimeout(() => {
+                if (redirectRef.current) {
+                  const path = redirectRef.current;
+                  redirectRef.current = null;
+                  push(path);
+                }
+              }, 0);
               return;
             }
           } else {
             setLoading(false);
             setIsUserAllowed(false);
-            setRedirectTo("/not-allowed");
+            redirectRef.current = "/not-allowed";
+            setTimeout(() => {
+              if (redirectRef.current) {
+                const path = redirectRef.current;
+                redirectRef.current = null;
+                push(path);
+              }
+            }, 0);
             return;
           }
         }
@@ -106,7 +130,7 @@ export default function FirebaseProvider({
       isMountedRef.current = false;
       unsubscribe();
     };
-  }, []);
+  }, [push]);
 
   if (loading) {
     return (
