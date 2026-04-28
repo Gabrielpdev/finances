@@ -2,12 +2,13 @@
 
 import { ICategory } from "@/types/data";
 
-export const defaultCategory = {
+export const defaultCategory: ICategory = {
   name: "Outros",
   icon: "",
   id: "others",
   list: [],
   color: "#0088FE",
+  goal: 0,
 };
 
 export const getCategory = (value: string, categories: ICategory[]) => {
