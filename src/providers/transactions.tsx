@@ -10,6 +10,7 @@ import {
 import { listCategories } from "@/app/actions/categories/list";
 import { listDatas } from "@/app/actions/data/list";
 import { defaultCategory, getCategory } from "@/helpers/getCategory";
+import { normalizeListItems } from "@/helpers/normalizeListItem";
 import {
   endOfCurrentMonth,
   startOfCurrentMonth,
@@ -34,6 +35,16 @@ export default function TransactionsProvider({
     from: startOfCurrentMonth,
     to: endOfCurrentMonth,
   });
+
+  /**
+   * Normaliza uma categoria: converte list de strings legadas em lista de objetos
+   */
+  const normalizeCategory = (category: ICategory): ICategory => {
+    return {
+      ...category,
+      list: normalizeListItems(category.list as any),
+    };
+  };
 
   const returnTransactionWithCategories = (
     savedData: IData[] | IFormattedData[],
@@ -90,8 +101,9 @@ export default function TransactionsProvider({
 
   const refreshCategories = async () => {
     const savedCategories = await listCategories();
-    setCategories(savedCategories);
-    putCategoriesOnTransactions(transactions, savedCategories);
+    const normalizedCategories = savedCategories.map(normalizeCategory);
+    setCategories(normalizedCategories);
+    putCategoriesOnTransactions(transactions, normalizedCategories);
   };
 
   const updateLocalData = ({
@@ -148,8 +160,9 @@ export default function TransactionsProvider({
       console.log("Initializing TransactionsProvider...");
 
       const savedCategories = await listCategories();
-      console.log("Fetched categories:", savedCategories);
-      setCategories(savedCategories);
+      const normalizedCategories = savedCategories.map(normalizeCategory);
+      console.log("Fetched categories:", normalizedCategories);
+      setCategories(normalizedCategories);
 
       const savedData = await listDatas({
         start: startOfCurrentMonth.getTime(),
@@ -159,7 +172,7 @@ export default function TransactionsProvider({
 
       const transactionsWithCategories = returnTransactionWithCategories(
         savedData,
-        savedCategories,
+        normalizedCategories,
       );
       setTransactions(transactionsWithCategories);
     };

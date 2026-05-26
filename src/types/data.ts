@@ -14,10 +14,15 @@ export interface IData {
 export interface IFormattedData extends IData {
   category: ICategory;
 }
+export interface ICategoryListItem {
+  key: string;
+  alias: string;
+}
+
 export interface ICategory {
   icon: string;
   id: string;
-  list: string[];
+  list: ICategoryListItem[];
   name: string;
   color: string;
   goal: number;

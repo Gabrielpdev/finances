@@ -46,15 +46,24 @@ export const TableValue = ({
     const establishmentClassName = `w-full  h-full flex items-center capitalize border-r-2 text-blue-950 
     max-sm:px-2 max-sm:w-full max-sm:border-none max-sm:text-left max-sm:font-medium`;
 
+    // Procurar pelo alias na lista da categoria
+    const listItem = item.category.list.find((categoryItem) =>
+      item.description
+        .toLocaleLowerCase()
+        .includes(categoryItem.key.toLocaleLowerCase()),
+    );
+
+    const displayText = listItem ? listItem.alias : item.description;
+
     if (item.installment) {
-      const parcelaFormatted = `${item.description} ${
+      const parcelaFormatted = `${displayText} ${
         item.installment !== "-" ? `(${item.installment})` : ""
       }`;
 
       return <span className={establishmentClassName}>{parcelaFormatted}</span>;
     }
 
-    return <span className={establishmentClassName}>{item.description}</span>;
+    return <span className={establishmentClassName}>{displayText}</span>;
   }
 
   if (type === "Valor") {

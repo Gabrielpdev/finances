@@ -5,7 +5,11 @@ import { useState, useEffect, useRef, useContext, useCallback } from "react";
 import { Loading } from "@/components/loading";
 import { useParams } from "next/navigation";
 import { ICategory } from "@/types/data";
-import { PiPlusCircleDuotone, PiTrashSimpleDuotone } from "react-icons/pi";
+import {
+  PiPlusCircleDuotone,
+  PiTrashSimpleDuotone,
+  PiPencilSimple,
+} from "react-icons/pi";
 import { toast } from "react-toastify";
 import { updateCategories } from "@/app/actions/categories/update";
 import { TransactionsContext } from "@/providers/transactions";
@@ -15,7 +19,8 @@ import { ColorPicker } from "@/components/ui/color-picker";
 export default function CategoryName() {
   const params = useParams();
 
-  const newCategoryItemRef = useRef<HTMLInputElement>(null);
+  const newCategoryKeyRef = useRef<HTMLInputElement>(null);
+  const newCategoryAliasRef = useRef<HTMLInputElement>(null);
 
   const [selectedCategory, setSelectedCategory] = useState<ICategory | null>(
     null,
@@ -24,6 +29,7 @@ export default function CategoryName() {
 
   const [loading, setLoading] = useState(true);
   const [addField, setAddField] = useState(false);
+  const [editingKey, setEditingKey] = useState<string | null>(null);
 
   const { setCategories, categories, updateLocalData } =
     useContext(TransactionsContext);
@@ -131,52 +137,87 @@ export default function CategoryName() {
     try {
       event.preventDefault();
 
-      if (newCategoryItemRef?.current?.value && selectedCategory) {
-        const value = newCategoryItemRef.current.value;
-        const newCategoryData: ICategory = {
-          ...selectedCategory,
-          list: [value, ...selectedCategory.list],
-        };
+      const keyValue = newCategoryKeyRef.current?.value?.trim();
+      const aliasValue = newCategoryAliasRef.current?.value?.trim();
 
-        await updateCategories({
-          id: selectedCategory.id,
-          data: newCategoryData,
-        });
-
-        const newCategories = categories.map((category) => {
-          if (category.id === selectedCategory?.id) {
-            if (category.list.includes(value)) {
-              toast.error("Valor já existe na lista");
-              return category;
-            }
-
-            return newCategoryData;
-          }
-
-          return category;
-        });
-
-        setCategories(newCategories);
-        setSelectedCategory(newCategoryData);
-        setAddField(false);
-        updateLocalData({
-          savedCategories: newCategories,
-        });
-        toast.success("Valor adicionado com sucesso!");
+      if (!keyValue || !aliasValue || !selectedCategory) {
+        toast.error("Chave e apelido são obrigatórios");
+        return;
       }
+
+      // Validar se a chave já existe (exceto se estiver editando o mesmo item)
+      const keyExists = selectedCategory.list.some(
+        (item) => item.key === keyValue && item.key !== editingKey,
+      );
+
+      if (keyExists) {
+        toast.error("Esta chave já existe na lista");
+        return;
+      }
+
+      let newList: ICategory["list"];
+
+      if (editingKey) {
+        // Modo edição: atualizar item existente
+        newList = selectedCategory.list.map((item) => {
+          if (item.key === editingKey) {
+            return { key: keyValue, alias: aliasValue };
+          }
+          return item;
+        });
+      } else {
+        // Modo adição: adicionar novo item
+        newList = [
+          { key: keyValue, alias: aliasValue },
+          ...selectedCategory.list,
+        ];
+      }
+
+      const newCategoryData: ICategory = {
+        ...selectedCategory,
+        list: newList,
+      };
+
+      await updateCategories({
+        id: selectedCategory.id,
+        data: newCategoryData,
+      });
+
+      const newCategories = categories.map((category) => {
+        if (category.id === selectedCategory?.id) {
+          return newCategoryData;
+        }
+
+        return category;
+      });
+
+      setCategories(newCategories);
+      setSelectedCategory(newCategoryData);
+      setAddField(false);
+      setEditingKey(null);
+      updateLocalData({
+        savedCategories: newCategories,
+      });
+      toast.success(
+        editingKey
+          ? "Item editado com sucesso!"
+          : "Valor adicionado com sucesso!",
+      );
     } catch (error) {
-      console.error("Failed to add value on list:", error);
+      console.error("Failed to save value on list:", error);
       setCategories(categories);
-      toast.error("Falha ao adicionar valor na lista.");
+      toast.error("Falha ao salvar item na lista.");
     }
   };
 
-  const handleDeleteValueOnList = async (name: string) => {
+  const handleDeleteValueOnList = async (key: string) => {
     try {
       if (!confirm("Tem certeza que deseja deletar este item?")) return;
 
       if (selectedCategory) {
-        const newList = selectedCategory.list.filter((item) => item !== name);
+        const newList = selectedCategory.list.filter(
+          (item) => item.key !== key,
+        );
         const newCategoryData: ICategory = {
           ...selectedCategory,
           list: newList,
@@ -194,6 +235,34 @@ export default function CategoryName() {
       console.error("Failed to delete value on list:", error);
       setCategories(categories);
       toast.error("Falha ao deletar item na lista.");
+    }
+  };
+
+  const handleEditValueOnList = (key: string) => {
+    const itemToEdit = selectedCategory?.list.find((item) => item.key === key);
+    if (itemToEdit) {
+      setEditingKey(key);
+      setAddField(true);
+      // Preencher campos após o componente renderizar
+      setTimeout(() => {
+        if (newCategoryKeyRef.current) {
+          newCategoryKeyRef.current.value = itemToEdit.key;
+        }
+        if (newCategoryAliasRef.current) {
+          newCategoryAliasRef.current.value = itemToEdit.alias;
+        }
+      }, 0);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingKey(null);
+    setAddField(false);
+    if (newCategoryKeyRef.current) {
+      newCategoryKeyRef.current.value = "";
+    }
+    if (newCategoryAliasRef.current) {
+      newCategoryAliasRef.current.value = "";
     }
   };
 
@@ -299,8 +368,11 @@ export default function CategoryName() {
               </span>
               {!addField && (
                 <button
-                  onClick={() => setAddField(true)}
-                  className="flex items-center justify-center gap-2 text-white bg-green-700 rounded-md my-3 py-2 font-extrabold col-span-2 max-sm:col-span-3"
+                  onClick={() => {
+                    setAddField(true);
+                    setEditingKey(null);
+                  }}
+                  className="flex items-center justify-center gap-2 text-white bg-green-700 rounded-md my-3 py-2 font-extrabold col-span-2 max-sm:col-span-3 hover:bg-green-800"
                 >
                   Adicionar
                   <PiPlusCircleDuotone className="max-sm:text-2xl" />
@@ -311,37 +383,82 @@ export default function CategoryName() {
             {addField && (
               <form
                 onSubmit={handleSaveNewValueOnList}
-                className="flex text-blue-950 w-full mb-3 bg-white p-2 rounded-md "
+                className="flex flex-col text-blue-950 w-full mb-3 bg-white p-2 rounded-md gap-2"
               >
-                <input
-                  ref={newCategoryItemRef}
-                  type="text"
-                  className="flex text-blue-950 w-full p-2 "
-                />
-                <button
-                  type="submit"
-                  className="text-white bg-green-700 rounded-md px-4 font-extrabold"
-                >
-                  Salvar
-                </button>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-semibold text-gray-700">
+                    Chave:
+                  </label>
+                  <input
+                    ref={newCategoryKeyRef}
+                    type="text"
+                    placeholder="ex: mercado-pago"
+                    className="flex text-blue-950 w-full p-2 text-sm border border-gray-300 rounded"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-semibold text-gray-700">
+                    Apelido:
+                  </label>
+                  <input
+                    ref={newCategoryAliasRef}
+                    type="text"
+                    placeholder="ex: Mercado Pago"
+                    className="flex text-blue-950 w-full p-2 text-sm border border-gray-300 rounded"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    className="text-white bg-green-700 rounded-md px-4 py-2 font-extrabold hover:bg-green-800 flex-1"
+                  >
+                    {editingKey ? "Atualizar" : "Adicionar"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    className="text-white bg-gray-500 rounded-md px-4 py-2 font-extrabold hover:bg-gray-600 flex-1"
+                  >
+                    Cancelar
+                  </button>
+                </div>
               </form>
             )}
 
-            <div className="grid gap-2 max-h-96 overflow-auto pb-4 pr-4">
-              {selectedCategory?.list.map((category) => (
+            <div className="grid gap-2 max-h-[calc(100vh-370px)] overflow-auto pb-4 pr-4">
+              {selectedCategory?.list.map((item) => (
                 <div
-                  key={category}
-                  className="grid grid-cols-10 text-center bg-white p-3 rounded-md text-blue-950 max-sm:py-3"
+                  key={item.key}
+                  className="grid gap-2 grid-cols-2 text-center bg-white p-3 rounded-md text-blue-950 max-sm:py-3"
                 >
-                  <span
-                    className={`w-full flex items-center capitalize col-span-8`}
-                  >
-                    {category}
-                  </span>
+                  <div className="w-full flex flex-col items-start col-span-2 max-sm:col-span-6 gap-1">
+                    <div className="flex items-center gap-1 w-full">
+                      <span className="text-xs text-gray-500 font-semibold">
+                        Apelido:
+                      </span>
+                      <span className="capitalize">{item.alias}</span>
+                    </div>
+                    <div className="flex items-center gap-1 w-full">
+                      <span className="text-xs text-gray-500 font-semibold">
+                        Chave:
+                      </span>
+                      <span className="font-mono text-sm">{item.key}</span>
+                    </div>
+                  </div>
 
                   <button
-                    onClick={() => handleDeleteValueOnList(category)}
-                    className="flex items-center justify-center gap-2 text-white bg-red-700 rounded-md py-2 col-span-2"
+                    onClick={() => handleEditValueOnList(item.key)}
+                    className="flex items-center justify-center gap-2 text-white bg-blue-950 rounded-md py-2 col-span-1  hover:bg-blue-900"
+                  >
+                    <span className="font-extrabold text-sm max-sm:hidden">
+                      Editar
+                    </span>
+                    <PiPencilSimple className="max-sm:text-xl" />
+                  </button>
+
+                  <button
+                    onClick={() => handleDeleteValueOnList(item.key)}
+                    className="flex items-center justify-center gap-2 text-white bg-red-700 rounded-md py-2 col-span-1  hover:bg-red-800"
                   >
                     <span className="font-extrabold text-sm max-sm:hidden">
                       Deletar

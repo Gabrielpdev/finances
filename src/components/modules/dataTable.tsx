@@ -1,6 +1,7 @@
 import { IData, IFormattedData } from "@/types/data";
 import { TableValue } from "../elements/tableValue";
 import { PiCheck, PiXCircleLight } from "react-icons/pi";
+import { PiPencilSimple } from "react-icons/pi";
 import { header } from "@/constants/tableHeader";
 import { cn } from "@/lib/utils/cn";
 import { useContext, useState } from "react";
@@ -15,6 +16,7 @@ export interface DataTableProps {
   shouldWarnXpItem?: boolean;
   onLongPress?: (item: IFormattedData) => void;
   enableEdit?: boolean;
+  onEdit?: (item: IFormattedData) => void;
 }
 
 export function DataTable({
@@ -24,6 +26,7 @@ export function DataTable({
   shouldWarnXpItem,
   onLongPress,
   enableEdit,
+  onEdit,
 }: DataTableProps) {
   const { updateOneTransaction } = useContext(TransactionsContext);
   const [changes, setChanges] = useState<{

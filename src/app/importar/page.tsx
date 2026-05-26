@@ -8,15 +8,14 @@ import { checkBankType } from "@/utils/checkBankType";
 import { formatXpCSV } from "@/helpers/formatBanksCSV/xpCSV";
 import { formatNubankCSV } from "@/helpers/formatBanksCSV/nubankCSV";
 import { formatMercadoPagoCSV } from "@/helpers/formatBanksCSV/mercadoPagoCSV";
-import { DataTable } from "@/components/modules/dataTable";
 import { HeaderTable } from "@/components/modules/headerTable";
 import { createData } from "../actions/data/create";
 import { TransactionsContext } from "@/providers/transactions";
-import {
-  addTimeStamp,
-  removeDuplicates,
-  removeSelectedItem,
-} from "./helpers/formaters";
+import { AddManualTransaction } from "./components/AddManualTransaction";
+import { EditManualTransaction } from "./components/EditManualTransaction";
+import { removeDuplicates, removeSelectedItem } from "./helpers/formaters";
+import { List } from "./components/List";
+import { addAllFutureInstallments } from "@/helpers/addFutureInstallments";
 
 export default function Import() {
   const { push } = useRouter();
@@ -29,6 +28,10 @@ export default function Import() {
   const [selectedToDelete, setSelectedToDelete] = useState<string[]>([]);
 
   const [loading, setLoading] = useState(false);
+  const [isManualModalOpen, setIsManualModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] =
+    useState<IFormattedData | null>(null);
 
   const {
     transactions,
@@ -114,9 +117,60 @@ export default function Import() {
     }
   };
 
+  const handleAddManualTransaction = (newTransaction: IData) => {
+    const transactionsWithFutureInstallments = addAllFutureInstallments([
+      newTransaction,
+    ]);
+    const updatedJson = [...json, ...transactionsWithFutureInstallments];
+
+    setJson(updatedJson);
+    const formattedTransaction = returnTransactionWithCategories(
+      updatedJson,
+      categories,
+    );
+    setTransactionWithCategories(formattedTransaction);
+  };
+
+  const handleEditTransaction = async (updatedTransaction: IData) => {
+    const updatedJson = json.map((item) =>
+      item.id === updatedTransaction.id ? updatedTransaction : item,
+    );
+
+    setJson(updatedJson);
+
+    const formattedTransaction = returnTransactionWithCategories(
+      updatedJson,
+      categories,
+    );
+    setTransactionWithCategories(formattedTransaction);
+  };
+
   return (
     <div className="flex max-w-6xl w-full flex-col m-auto">
+      <AddManualTransaction
+        isOpen={isManualModalOpen}
+        onClose={() => setIsManualModalOpen(false)}
+        onAdd={handleAddManualTransaction}
+        categories={categories}
+      />
+      <EditManualTransaction
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingTransaction(null);
+        }}
+        onEdit={handleEditTransaction}
+        transaction={editingTransaction}
+        categories={categories}
+      />
+
       <div className="flex w-full flex-col gap-5 p-2 mt-20">
+        <button
+          className="w-full rounded bg-green-600 text-white p-2 hover:bg-green-700"
+          onClick={() => setIsManualModalOpen(true)}
+        >
+          + Adicionar Transação Manual
+        </button>
         <label className="w-full border border-green-500 border-dashed h-32 relative ">
           <p className="w-full h-full absolute flex items-center justify-center ">
             {fileRef.current?.files?.[0]?.name
@@ -166,12 +220,15 @@ export default function Import() {
           <HeaderTable />
 
           {transactionWithCategories?.map((item) => (
-            <DataTable
+            <List
               item={item}
               selectedItemToExclude={selectedToDelete}
               setSelectedItemToExclude={setSelectedToDelete}
               key={item.id}
-              shouldWarnXpItem
+              onEdit={(transaction) => {
+                setEditingTransaction(transaction);
+                setIsEditModalOpen(true);
+              }}
             />
           ))}
         </div>
