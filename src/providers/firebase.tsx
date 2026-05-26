@@ -60,8 +60,6 @@ export default function FirebaseProvider({
     const unsubscribe = auth.onAuthStateChanged(async (user: User | null) => {
       if (!isMountedRef.current) return;
 
-      console.log(user);
-
       if (!user) {
         setLoading(false);
         setIsUserAllowed(false);

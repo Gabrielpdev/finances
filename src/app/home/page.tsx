@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import { months } from "@/constants/months";
 import { IFormattedData, IShowedData } from "@/types/data";
@@ -74,7 +74,6 @@ export default function Home() {
   const readJsonFile = useCallback(async () => {
     setLoading(true);
     try {
-      console.log(transactions);
       removeCreditDatas(transactions);
     } catch (error) {
       console.error("Error:", error);
@@ -87,24 +86,30 @@ export default function Home() {
     readJsonFile();
   }, [readJsonFile]);
 
+  const filterData = useCallback(
+    (month: IFormattedData[]) => {
+      const filteredData = month
+        .filter(
+          (item) =>
+            selectedFilterType === "" || selectedFilterType === item.type,
+        )
+        .filter((item) => {
+          return (
+            selectedFilterCategory.length === 0 ||
+            selectedFilterCategory.includes(item.category.name)
+          );
+        });
+
+      return filteredData;
+    },
+    [selectedFilterType, selectedFilterCategory],
+  );
+
   const formatTotalValue = useCallback(() => {
     let inTotal = 0;
     let outTotal = 0;
 
-    for (const item of transactions) {
-      if (selectedFilterType !== "" && selectedFilterType !== item.type) {
-        continue;
-      }
-
-      const estabelecimento = item.description;
-      const category = getCategory(estabelecimento, categories);
-      if (
-        selectedFilterCategory.length !== 0 &&
-        !selectedFilterCategory.includes(category.name)
-      ) {
-        continue;
-      }
-
+    for (const item of filterData(transactions)) {
       if (selectedItemToExclude.includes(item.id)) {
         continue;
       }
@@ -127,14 +132,7 @@ export default function Home() {
         currency: "BRL",
       }),
     });
-  }, [
-    transactions,
-    categories,
-    selectedFilterType,
-    selectedFilterCategory,
-    selectedItemToExclude,
-    setValue,
-  ]);
+  }, [transactions, setValue, selectedItemToExclude, filterData]);
 
   useEffect(() => {
     formatTotalValue();
@@ -237,30 +235,18 @@ export default function Home() {
                 </div>
               )}
 
-              {month
-                .filter(
-                  (item) =>
-                    selectedFilterType === "" ||
-                    selectedFilterType === item.type,
-                )
-                .filter((item) => {
-                  return (
-                    selectedFilterCategory.length === 0 ||
-                    selectedFilterCategory.includes(item.category.name)
-                  );
-                })
-                .map((item) => {
-                  return (
-                    <DataTable
-                      item={item}
-                      selectedItemToExclude={selectedItemToExclude}
-                      setSelectedItemToExclude={setSelectedItemToExclude}
-                      enableEdit={enableEdit}
-                      onLongPress={handleDeleteItem}
-                      key={item.id}
-                    />
-                  );
-                })}
+              {filterData(month).map((item) => {
+                return (
+                  <DataTable
+                    item={item}
+                    selectedItemToExclude={selectedItemToExclude}
+                    setSelectedItemToExclude={setSelectedItemToExclude}
+                    enableEdit={enableEdit}
+                    onLongPress={handleDeleteItem}
+                    key={item.id}
+                  />
+                );
+              })}
             </div>
           );
         })

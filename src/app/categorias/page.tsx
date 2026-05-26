@@ -1,15 +1,27 @@
 "use client";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 
 import ListItem from "./components/ListItem";
+import { CreateCategoryModal } from "./components/CreateCategoryModal";
 import { TransactionsContext } from "@/providers/transactions";
+import { Button } from "@/components/ui/button";
 
 export default function Category() {
   const { categories } = useContext(TransactionsContext);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <div className="flex max-w-6xl w-full flex-col m-auto">
-      <div className={`max-sm:p-4 w-full flex flex-col mb-20`}>
+      <div className={`max-sm:p-4 w-full mt-4 flex flex-col mb-20`}>
+        <div className="flex justify-end items-center px-5">
+          <Button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-green-600 text-white hover:bg-green-700"
+          >
+            + Nova Categoria
+          </Button>
+        </div>
+
         <div className={`grid grid-cols-10 my-2 px-5`}>
           <span
             className={`w-full flex items-center text-blue-950 m-2 col-span-9`}
@@ -34,6 +46,11 @@ export default function Category() {
           ))}
         </div>
       </div>
+
+      <CreateCategoryModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 }

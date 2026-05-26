@@ -157,18 +157,15 @@ export default function TransactionsProvider({
     isInitializedRef.current = true;
 
     const init = async () => {
-      console.log("Initializing TransactionsProvider...");
-
       const savedCategories = await listCategories();
       const normalizedCategories = savedCategories.map(normalizeCategory);
-      console.log("Fetched categories:", normalizedCategories);
+
       setCategories(normalizedCategories);
 
       const savedData = await listDatas({
         start: startOfCurrentMonth.getTime(),
         end: endOfCurrentMonth.getTime(),
       });
-      console.log("Fetched transactions:", savedData);
 
       const transactionsWithCategories = returnTransactionWithCategories(
         savedData,
