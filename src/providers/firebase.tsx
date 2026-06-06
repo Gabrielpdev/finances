@@ -36,6 +36,10 @@ export default function FirebaseProvider({
   const login = async () => {
     setLoading(true);
     const userCred = await signInWithPopup(auth, provider);
+
+    const token = await userCred.user.getIdToken();
+    await createSession(token!);
+
     setUser(userCred.user);
   };
 
@@ -45,90 +49,90 @@ export default function FirebaseProvider({
     setIsUserAllowed(false);
   };
 
-  // Handle redirects immediately when needed, not via state
-  useEffect(() => {
-    if (redirectRef.current) {
-      const path = redirectRef.current;
-      redirectRef.current = null;
-      push(path);
-    }
-  }, [push]);
+  // // Handle redirects immediately when needed, not via state
+  // useEffect(() => {
+  //   if (redirectRef.current) {
+  //     const path = redirectRef.current;
+  //     redirectRef.current = null;
+  //     push(path);
+  //   }
+  // }, [push]);
 
-  useEffect(() => {
-    isMountedRef.current = true;
+  // useEffect(() => {
+  //   isMountedRef.current = true;
 
-    const unsubscribe = auth.onAuthStateChanged(async (user: User | null) => {
-      if (!isMountedRef.current) return;
+  //   const unsubscribe = auth.onAuthStateChanged(async (user: User | null) => {
+  //     if (!isMountedRef.current) return;
 
-      if (!user) {
-        setLoading(false);
-        setIsUserAllowed(false);
-        redirectRef.current = "/login";
-        // Schedule redirect outside of this callback
-        setTimeout(() => {
-          if (redirectRef.current) {
-            const path = redirectRef.current;
-            redirectRef.current = null;
-            push(path);
-          }
-        }, 0);
-        return;
-      }
+  //     if (!user) {
+  //       setLoading(false);
+  //       setIsUserAllowed(false);
+  //       redirectRef.current = "/login";
+  //       // Schedule redirect outside of this callback
+  //       setTimeout(() => {
+  //         if (redirectRef.current) {
+  //           const path = redirectRef.current;
+  //           redirectRef.current = null;
+  //           push(path);
+  //         }
+  //       }, 0);
+  //       return;
+  //     }
 
-      try {
-        const token = await user.getIdToken();
-        await createSession(token!);
-        const result = await checkUserToken();
+  //     try {
+  //       const token = await user.getIdToken();
+  //       await createSession(token!);
+  //       const result = await checkUserToken();
 
-        if (!result.valid) {
-          if (result.reason === "expired") {
-            const refreshedToken = await user.getIdToken(true);
-            await createSession(refreshedToken!);
-            const retryResult = await checkUserToken();
+  //       if (!result.valid) {
+  //         if (result.reason === "expired") {
+  //           const refreshedToken = await user.getIdToken(true);
+  //           await createSession(refreshedToken!);
+  //           const retryResult = await checkUserToken();
 
-            if (!retryResult.valid) {
-              setLoading(false);
-              setIsUserAllowed(false);
-              redirectRef.current = "/not-allowed";
-              setTimeout(() => {
-                if (redirectRef.current) {
-                  const path = redirectRef.current;
-                  redirectRef.current = null;
-                  push(path);
-                }
-              }, 0);
-              return;
-            }
-          } else {
-            setLoading(false);
-            setIsUserAllowed(false);
-            redirectRef.current = "/not-allowed";
-            setTimeout(() => {
-              if (redirectRef.current) {
-                const path = redirectRef.current;
-                redirectRef.current = null;
-                push(path);
-              }
-            }, 0);
-            return;
-          }
-        }
+  //           if (!retryResult.valid) {
+  //             setLoading(false);
+  //             setIsUserAllowed(false);
+  //             redirectRef.current = "/not-allowed";
+  //             setTimeout(() => {
+  //               if (redirectRef.current) {
+  //                 const path = redirectRef.current;
+  //                 redirectRef.current = null;
+  //                 push(path);
+  //               }
+  //             }, 0);
+  //             return;
+  //           }
+  //         } else {
+  //           setLoading(false);
+  //           setIsUserAllowed(false);
+  //           redirectRef.current = "/not-allowed";
+  //           setTimeout(() => {
+  //             if (redirectRef.current) {
+  //               const path = redirectRef.current;
+  //               redirectRef.current = null;
+  //               push(path);
+  //             }
+  //           }, 0);
+  //           return;
+  //         }
+  //       }
 
-        setUser(user);
-        setIsUserAllowed(true);
-        setLoading(false);
-      } catch (error) {
-        console.error("Auth error:", error);
-        setLoading(false);
-        setIsUserAllowed(false);
-      }
-    });
+  //       setUser(user);
+  //       setIsUserAllowed(true);
+  //       setLoading(false);
+  //     } catch (error) {
+  //       console.error("Auth error:", error);
+  //       setLoading(false);
+  //       setIsUserAllowed(false);
+  //     }
+  //   });
 
-    return () => {
-      isMountedRef.current = false;
-      unsubscribe();
-    };
-  }, [push]);
+  //   return () => {
+  //     isMountedRef.current = false;
+  //     unsubscribe();
+  //   };
+  // }, [push]);
 
   if (loading) {
     return (

@@ -1,27 +1,31 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { LOCAL_STORAGE_KEY } from "./constants/keys";
+// import { LOCAL_STORAGE_KEY } from "./constants/keys";
+import { checkUserToken } from "./app/actions/checkUserToken";
 
 const PROTECTED_PREFIXES = ["/home", "/dashboard", "/categorias", "/importar"];
-const AUTH_COOKIE_NAME = `${LOCAL_STORAGE_KEY}_session`;
+// const AUTH_COOKIE_NAME = `${LOCAL_STORAGE_KEY}_session`;
 
 function isProtectedPath(pathname: string) {
   return PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 }
 
-export default function middleware(req: NextRequest) {
+export default async function proxy(req: NextRequest) {
   const { pathname, origin } = req.nextUrl;
-  const session = req.cookies.get(AUTH_COOKIE_NAME);
+  // const session = req.cookies.get(AUTH_COOKIE_NAME);
 
-  const hasSession = Boolean(session?.value);
+  // const hasSession = Boolean(session?.value);
+  const result = await checkUserToken();
+
   const protectedPath = isProtectedPath(pathname);
-  const isAuthPage = pathname === "/login" || pathname === "/not-allowed";
+  const isAuthPage =
+    pathname === "/login" || pathname === "/not-allowed" || pathname === "/";
 
-  if (protectedPath && !hasSession) {
+  if (protectedPath && !result.valid) {
     return NextResponse.redirect(new URL("/login", origin));
   }
 
-  if (hasSession && (isAuthPage || pathname === "/")) {
+  if (result.valid && isAuthPage) {
     return NextResponse.redirect(new URL("/home", origin));
   }
 
