@@ -1,7 +1,7 @@
 import { IData, IFormattedData } from "@/types/data";
 
 export const removeDuplicates = (
-  json: IData[],
+  json: IFormattedData[],
   currentList: IFormattedData[],
 ) => {
   return json.filter((savedItem) => {
@@ -10,7 +10,7 @@ export const removeDuplicates = (
 };
 
 export const removeSelectedItem = (
-  json: IData[],
+  json: IFormattedData[],
   selectedToDelete: string[],
 ) => {
   const filtered = json?.filter((item) => {

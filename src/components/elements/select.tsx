@@ -58,16 +58,15 @@ const Select = ({
         <DropdownMenu.Trigger
           disabled={isLoading || disabled}
           defaultValue={defaultValue}
-          asChild
           className={cn(
-            "w-60 h-9 rounded-md text-primary-foreground bg-white justify-between px-2.5 font-normal shadow-[0_1px_2px] shadow-black outline-none  max-sm:w-full",
+            "w-60 h-9 rounded-md text-primary-foreground bg-white px-2.5 font-normal shadow-[0_1px_2px] shadow-black outline-none  max-sm:w-full",
             className,
           )}
         >
-          <button className="flex items-center justify-between text-sm">
+          <div className="flex items-center w-full justify-between text-sm">
             <span className="truncate">{selected || title}</span>
-            <TbTriangleInvertedFilled size={15} className="flex-shrink-0" />
-          </button>
+            <TbTriangleInvertedFilled size={13} className="shrink-0" />
+          </div>
         </DropdownMenu.Trigger>
 
         <DropdownMenu.Portal>

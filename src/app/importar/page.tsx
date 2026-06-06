@@ -22,7 +22,6 @@ export default function Import() {
   const { push } = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const [json, setJson] = useState<IData[]>([]);
   const [transactionWithCategories, setTransactionWithCategories] = useState<
     IFormattedData[]
   >([]);
@@ -47,8 +46,6 @@ export default function Import() {
         reader.onload = function (e) {
           const content = e?.target?.result as string;
           const json = csvJSON(content);
-
-          setJson(json);
           const transactions = transactionsWithCategories(json, categories);
           setTransactionWithCategories(transactions);
         };
@@ -84,12 +81,14 @@ export default function Import() {
   const handleSaveJSON = async () => {
     setLoading(true);
     try {
-      const removedDuplicates = removeDuplicates(json, transactions);
+      const removedDuplicates = removeDuplicates(
+        transactionWithCategories,
+        transactions,
+      );
       const removedSelectedItem = removeSelectedItem(
         removedDuplicates,
         selectedToDelete,
       );
-      // const withTimeStamp = addTimeStamp(removedSelectedItem);
 
       if (removedSelectedItem.length > 0) {
         await Promise.all(
@@ -101,7 +100,7 @@ export default function Import() {
         await refreshTransactions();
       }
 
-      setJson([]);
+      setTransactionWithCategories([]);
       fileRef.current!.value = "";
       push("/dashboard");
     } catch (error) {
@@ -115,9 +114,11 @@ export default function Import() {
     const transactionsWithFutureInstallments = addAllFutureInstallments([
       newTransaction,
     ]);
-    const updatedJson = [...json, ...transactionsWithFutureInstallments];
+    const updatedJson = [
+      ...transactionWithCategories,
+      ...transactionsWithFutureInstallments,
+    ];
 
-    setJson(updatedJson);
     const formattedTransaction = transactionsWithCategories(
       updatedJson,
       categories,
@@ -125,18 +126,12 @@ export default function Import() {
     setTransactionWithCategories(formattedTransaction);
   };
 
-  const handleEditTransaction = async (updatedTransaction: IData) => {
-    const updatedJson = json.map((item) =>
+  const handleEditTransaction = async (updatedTransaction: IFormattedData) => {
+    const updatedJson = transactionWithCategories.map((item) =>
       item.id === updatedTransaction.id ? updatedTransaction : item,
     );
 
-    setJson(updatedJson);
-
-    const formattedTransaction = transactionsWithCategories(
-      updatedJson,
-      categories,
-    );
-    setTransactionWithCategories(formattedTransaction);
+    setTransactionWithCategories(updatedJson);
   };
 
   return (

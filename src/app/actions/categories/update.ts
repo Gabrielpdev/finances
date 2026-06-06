@@ -15,7 +15,6 @@ export async function updateCategories({ id, data }: UpdateCategoriesParams) {
   try {
     await checkUserToken();
 
-    console.log(data);
     await db
       .collection("categories")
       .doc(id)

@@ -1,9 +1,5 @@
 "use client";
-import { useCallback, useContext, useEffect, useState } from "react";
-
-import { IFormattedData } from "@/types/data";
-
-import { CurrencyContext } from "@/providers/currency";
+import { useContext } from "react";
 
 import MultiSelect from "@/components/elements/multiSelect";
 import Select from "@/components/elements/select";
@@ -11,6 +7,7 @@ import { TransactionsContext } from "@/providers/transactions";
 import { DatePickerWithRange } from "@/components/elements/calendar";
 import { Button } from "@/components/ui/button";
 import { PiMagnifyingGlass, PiPen } from "react-icons/pi";
+import { Switch } from "@/components/ui/switch";
 
 const typesOptions = ["Xp", "Mercado Pago"];
 
@@ -68,21 +65,21 @@ export default function Filters({
         />
       </div>
 
-      <Button
-        className="flex items-center justify-center bg-green-700 hover:bg-green-800 text-white max-sm:w-full"
-        onClick={searchWithFilters}
-      >
-        Buscar
-        <PiMagnifyingGlass />
-      </Button>
+      <div className="flex gap-1 justify-between items-end w-full">
+        <Button
+          className="flex items-center justify-center bg-green-700 hover:bg-green-800 text-white max-sm:w-[80%]"
+          onClick={searchWithFilters}
+        >
+          Buscar
+          <PiMagnifyingGlass />
+        </Button>
 
-      <Button
-        className="flex items-center justify-center bg-yellow-700 hover:bg-yellow-800 text-white max-sm:w-full"
-        onClick={() => setEnableEdit((prev) => !prev)}
-      >
-        Editar
-        <PiPen />
-      </Button>
+        <Switch
+          className=" max-sm:w-[20%]"
+          label="Editar"
+          onCheckedChange={(checked) => setEnableEdit(checked)}
+        />
+      </div>
     </div>
   );
 }
