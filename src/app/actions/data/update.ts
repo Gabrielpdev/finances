@@ -22,7 +22,7 @@ export async function updateTransaction({ data }: UpdateTransactionParams) {
         updatedAt: new Date(),
       });
 
-    revalidateTag("data-list");
+    revalidateTag("data-list", "max");
   } catch (error) {
     console.error("Error updating transaction:", error);
     throw error;

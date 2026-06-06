@@ -12,7 +12,7 @@ export async function createData(data: IData) {
 
     await db.collection("transactions").doc(data.id).set(data, { merge: true });
 
-    revalidateTag("data-list");
+    revalidateTag("data-list", "max");
   } catch (error) {
     console.error("Error creating data:", error);
     throw error;

@@ -4,7 +4,6 @@ import { cookies } from "next/headers";
 import { auth } from "@/lib/firebase-admin";
 import { LOCAL_STORAGE_KEY } from "@/constants/keys";
 import { createSession } from "./createSession";
-import { User } from "firebase/auth";
 
 export const checkUserToken = async () => {
   const cookieStore = await cookies();
@@ -15,9 +14,10 @@ export const checkUserToken = async () => {
   if (!token) {
     return { valid: false, reason: "no-token" as const };
   }
+
   try {
     // 1️⃣ Verify token
-    const decoded = await auth.verifyIdToken(token);
+    const decoded = await auth.verifySessionCookie(token, true);
 
     const allowedUsers = process.env.ALLOWED_USERS?.split(",");
 
@@ -32,9 +32,10 @@ export const checkUserToken = async () => {
   } catch (error: any) {
     if (error?.code === "auth/id-token-expired") {
       console.warn("Token expired, attempting to refresh...");
-      return await refreshUserToken();
+      return refreshUserToken();
     }
 
+    console.error("Error verifying token:", error);
     return { valid: false, reason: "invalid" as const };
   }
 };
@@ -44,15 +45,16 @@ export const refreshUserToken = async () => {
   const session = cookieStore.get(`${LOCAL_STORAGE_KEY}_session`);
 
   const token = session?.value;
+
   if (!token) {
     return { valid: false, reason: "no-token" as const };
   }
 
   try {
-    const decoded = await auth.verifyIdToken(token, true);
-    const refreshedToken = await auth.createCustomToken(decoded.uid);
+    await auth.verifySessionCookie(token, true);
+    // await auth.verifyIdToken(token, true);
+    // await auth.verifySessionCookie(token);
 
-    await createSession(refreshedToken);
     return { valid: true as const };
   } catch (error) {
     console.error("Error refreshing token:", error);

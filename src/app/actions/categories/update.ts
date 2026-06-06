@@ -24,7 +24,7 @@ export async function updateCategories({ id, data }: UpdateCategoriesParams) {
         updatedAt: new Date(),
       });
 
-    revalidateTag("categories-list");
+    revalidateTag("categories-list", "max");
   } catch (error) {
     console.error("Error creating categories:", error);
     throw error;

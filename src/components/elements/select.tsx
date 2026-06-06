@@ -60,7 +60,7 @@ const Select = ({
           defaultValue={defaultValue}
           asChild
           className={cn(
-            "w-60 h-9 rounded-md text-primary-foreground bg-white justify-start px-2.5 font-normal shadow-[0_1px_2px] shadow-black outline-none  max-sm:w-full",
+            "w-60 h-9 rounded-md text-primary-foreground bg-white justify-between px-2.5 font-normal shadow-[0_1px_2px] shadow-black outline-none  max-sm:w-full",
             className,
           )}
         >

@@ -4,13 +4,16 @@ import { db } from "@/lib/firebase-admin";
 import { ICategory } from "@/types/data";
 import { checkUserToken } from "../checkUserToken";
 import { unstable_cache } from "next/cache";
+import { normalizeListItems } from "@/helpers/normalizeListItem";
 
-export const listCategories = unstable_cache(
+export const listCategories = async () => {
+  await checkUserToken();
+  return getCategories();
+};
+
+export const getCategories = unstable_cache(
   async () => {
     try {
-      console.log("Fetching categories from Firestore...");
-      await checkUserToken();
-
       const snapshot = await db.collection("categories").get();
 
       const dataList: ICategory[] = [];
@@ -21,7 +24,9 @@ export const listCategories = unstable_cache(
         dataList.push({ ...data, id: doc.id });
       });
 
-      return JSON.parse(JSON.stringify(dataList));
+      const categories = JSON.parse(JSON.stringify(dataList));
+
+      return normalizeCategory(categories);
     } catch (error) {
       console.error("Error fetching categories:", error);
       throw error;
@@ -33,3 +38,12 @@ export const listCategories = unstable_cache(
     tags: ["categories-list"],
   },
 );
+
+export const normalizeCategory = async (
+  category: ICategory[],
+): Promise<ICategory[]> => {
+  return category.map((cat) => ({
+    ...cat,
+    list: normalizeListItems(cat.list as any),
+  }));
+};

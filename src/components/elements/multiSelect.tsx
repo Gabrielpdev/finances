@@ -67,7 +67,7 @@ const MultiSelect = ({
           disabled={isLoading || disabled}
           defaultValue={defaultValue}
           asChild
-          className="w-60 h-9 rounded-md text-primary-foreground bg-white justify-start px-2.5 font-normal shadow-[0_1px_2px] shadow-black outline-none max-sm:w-full"
+          className="w-60 h-9 rounded-md text-primary-foreground bg-white justify-between px-2.5 font-normal shadow-[0_1px_2px] shadow-black outline-none max-sm:w-full"
         >
           <button className="flex items-center justify-between text-sm shadow-[0_1px_2px] shadow-black">
             <span className="truncate">

@@ -3,14 +3,34 @@
 import { unstable_cache } from "next/cache";
 import { db } from "@/lib/firebase-admin";
 
-import { IData } from "@/types/data";
+import { ICategory, IData } from "@/types/data";
 import { checkUserToken } from "../checkUserToken";
+import { transactionsWithCategories } from "@/helpers/transactionsWithCategories";
 
-export const listDatas = unstable_cache(
-  async ({ start, end }: { start?: number; end?: number }) => {
+export interface IListDatasParams {
+  start?: number;
+  end?: number;
+  categories: ICategory[];
+}
+export interface IGetDatasParams {
+  start?: number;
+  end?: number;
+}
+
+export const listDatas = async ({
+  start,
+  end,
+  categories,
+}: IListDatasParams) => {
+  await checkUserToken();
+  const data = await getDatas({ start, end });
+
+  return transactionsWithCategories(data, categories);
+};
+
+export const getDatas = unstable_cache(
+  async ({ start, end }: IGetDatasParams) => {
     try {
-      await checkUserToken();
-
       // make the where only if the param exists, otherwise return all the data
       let query: FirebaseFirestore.Query = db.collection("transactions");
 

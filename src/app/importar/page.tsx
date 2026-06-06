@@ -16,6 +16,7 @@ import { EditManualTransaction } from "./components/EditManualTransaction";
 import { removeDuplicates, removeSelectedItem } from "./helpers/formaters";
 import { List } from "./components/List";
 import { addAllFutureInstallments } from "@/helpers/addFutureInstallments";
+import { transactionsWithCategories } from "@/helpers/transactionsWithCategories";
 
 export default function Import() {
   const { push } = useRouter();
@@ -33,12 +34,8 @@ export default function Import() {
   const [editingTransaction, setEditingTransaction] =
     useState<IFormattedData | null>(null);
 
-  const {
-    transactions,
-    categories,
-    refreshTransactions,
-    returnTransactionWithCategories,
-  } = useContext(TransactionsContext);
+  const { transactions, categories, refreshTransactions } =
+    useContext(TransactionsContext);
 
   const handleFileChange = (e: any) => {
     e.preventDefault();
@@ -52,10 +49,7 @@ export default function Import() {
           const json = csvJSON(content);
 
           setJson(json);
-          const transactions = returnTransactionWithCategories(
-            json,
-            categories,
-          );
+          const transactions = transactionsWithCategories(json, categories);
           setTransactionWithCategories(transactions);
         };
         reader.readAsText(file);
@@ -124,7 +118,7 @@ export default function Import() {
     const updatedJson = [...json, ...transactionsWithFutureInstallments];
 
     setJson(updatedJson);
-    const formattedTransaction = returnTransactionWithCategories(
+    const formattedTransaction = transactionsWithCategories(
       updatedJson,
       categories,
     );
@@ -138,7 +132,7 @@ export default function Import() {
 
     setJson(updatedJson);
 
-    const formattedTransaction = returnTransactionWithCategories(
+    const formattedTransaction = transactionsWithCategories(
       updatedJson,
       categories,
     );
