@@ -1,18 +1,14 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { auth } from "@/lib/firebase-admin";
 import { LOCAL_STORAGE_KEY } from "@/constants/keys";
+import { auth } from "@/lib/firebase-admin";
 
 export async function createSession(idToken: string) {
-  const decoded = await auth.verifyIdToken(idToken);
-
-  cookies().set(`${LOCAL_STORAGE_KEY}_session`, idToken, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-    path: "/",
+  const cookieStore = await cookies();
+  const sessionCookie = await auth.createSessionCookie(idToken, {
+    expiresIn: 60 * 60 * 24 * 5 * 1000,
   });
 
-  return decoded.uid;
+  cookieStore.set(`${LOCAL_STORAGE_KEY}_session`, sessionCookie);
 }

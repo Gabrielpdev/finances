@@ -39,13 +39,13 @@ export interface IUpdateData {
 }
 
 export interface IUserContext {
-  isUserAllowed: boolean;
   user: any;
   login: () => Promise<void>;
   logout: () => Promise<void>;
 }
 
 export interface ICurrencyContext {
+  calcValue: (transactions: IFormattedData[], itemsToExclude: string[]) => void;
   value: {
     in: string;
     out: string;
@@ -54,6 +54,7 @@ export interface ICurrencyContext {
 }
 
 export interface ITransactionsContext {
+  loading: boolean;
   categories: ICategory[];
   setCategories: (categories: ICategory[]) => void;
   futureTransactions: IFormattedData[];
@@ -70,10 +71,6 @@ export interface ITransactionsContext {
     savedData?: IData[] | IFormattedData[];
     savedCategories?: ICategory[];
   }) => void;
-  returnTransactionWithCategories: (
-    savedData: IData[] | IFormattedData[],
-    savedCategories: ICategory[],
-  ) => IFormattedData[];
   getFutureTransactions: () => Promise<void>;
   updateOneTransaction: (updatedData: IData) => void;
 }

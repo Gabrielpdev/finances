@@ -1,5 +1,3 @@
-"use client";
-
 import { ICategory } from "@/types/data";
 
 export const defaultCategory: ICategory = {

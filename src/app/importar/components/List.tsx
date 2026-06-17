@@ -20,7 +20,6 @@ export function List({
   setSelectedItemToExclude,
   onEdit,
 }: DataTableProps) {
-  const { updateOneTransaction } = useContext(TransactionsContext);
   const [changes, setChanges] = useState<{
     label: string;
     value: string | undefined;

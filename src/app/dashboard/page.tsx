@@ -2,13 +2,9 @@
 "use client";
 import { useCallback, useContext, useEffect, useState } from "react";
 
-// import { CurrencyContext } from "@/providers/currency";
-
 import { groupCategories } from "@/helpers/getValuesOnCategories";
 import SimpleBarChart, { IBarChartData } from "@/components/elements/bar-chart";
 import SimpleHorizontalBarChart from "@/components/elements/horizontal-chart";
-import { formatToDate } from "@/utils/formatToDate";
-import { months } from "@/constants/months";
 import { TransactionsContext } from "@/providers/transactions";
 import { groupByMonths } from "@/helpers/groupByMonths";
 import { HeaderTable } from "@/components/modules/headerTable";
@@ -28,7 +24,6 @@ export default function Home() {
 
   const [showedData, setShowedData] = useState<IShowedData>({});
 
-  // const { setValue } = useContext(CurrencyContext);
   const {
     transactions,
     filterDate,
@@ -37,36 +32,9 @@ export default function Home() {
     futureTransactions,
   } = useContext(TransactionsContext);
 
-  const removeCreditDatas = useCallback(async () => {
-    try {
-      // let inTotal = 0;
-      // let outTotal = 0;
-      const uniqueDateMap = new Map();
-
-      transactions.forEach((obj) => {
-        const date = formatToDate(obj);
-
-        const monthKey = `${months[date.getMonth()]}-${date.getFullYear()}`;
-
-        uniqueDateMap.set(monthKey, monthKey);
-      });
-
-      // setValue({
-      //   in: inTotal.toLocaleString("pt-BR", {
-      //     style: "currency",
-      //     currency: "BRL",
-      //   }),
-      //   out: outTotal.toLocaleString("pt-BR", {
-      //     style: "currency",
-      //     currency: "BRL",
-      //   }),
-      // });
-
-      setChartCategoriesData(groupCategories(transactions));
-      setChartTypeData(groupTypes(transactions));
-    } catch (error) {
-      console.error("Error:", error);
-    }
+  const removeCreditDatas = useCallback(() => {
+    setChartCategoriesData(groupCategories(transactions));
+    setChartTypeData(groupTypes(transactions));
   }, [transactions]);
 
   useEffect(() => {

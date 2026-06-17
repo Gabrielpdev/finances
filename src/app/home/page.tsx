@@ -1,41 +1,26 @@
 "use client";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 
-import { months } from "@/constants/months";
-import { IFormattedData, IShowedData } from "@/types/data";
+import { IFormattedData } from "@/types/data";
 
 import { Loading } from "@/components/loading";
 import { formatToDate } from "@/utils/formatToDate";
-import { CurrencyContext } from "@/providers/currency";
 import { groupByMonths } from "@/helpers/groupByMonths";
 import { DataTable } from "@/components/modules/dataTable";
 import { HeaderTable } from "@/components/modules/headerTable";
 import { ConfirmDeleteModal } from "@/components/modules/confirmDeleteModal";
 
-import { getCategory } from "@/helpers/getCategory";
-
-import MultiSelect from "@/components/elements/multiSelect";
-import Select from "@/components/elements/select";
 import { TransactionsContext } from "@/providers/transactions";
-import { DatePickerWithRange } from "@/components/elements/calendar";
-import { Button } from "@/components/ui/button";
-import { PiMagnifyingGlass, PiPen } from "react-icons/pi";
 import { toast } from "react-toastify";
 import { deleteTransaction } from "../actions/data/delete";
-
-const typesOptions = ["Xp", "Mercado Pago"];
+import Filters from "./_components/Filters";
+import { CurrencyContext } from "@/providers/currency";
 
 export default function Home() {
-  const [showedData, setShowedData] = useState<IShowedData>({});
-
-  const [loading, setLoading] = useState(true);
-
   const [selectedFilterType, setSelectedFilterType] = useState("");
-
   const [selectedFilterCategory, setSelectedFilterCategory] = useState<
     string[]
   >([]);
-
   const [selectedItemToExclude, setSelectedItemToExclude] = useState<string[]>(
     [],
   );
@@ -44,51 +29,23 @@ export default function Home() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<IFormattedData | null>(null);
 
-  const { setValue } = useContext(CurrencyContext);
-  const { transactions, categories, refreshTransactions, filterDate } =
+  const { calcValue } = useContext(CurrencyContext);
+  const { transactions, refreshTransactions, loading } =
     useContext(TransactionsContext);
 
-  const removeCreditDatas = useCallback((data: IFormattedData[]) => {
-    try {
-      const dateSet = new Set<string>();
-      const typeSet = new Set<string>();
+  const transactionsGrouped = useMemo(() => {
+    const sorted = [...transactions].sort((a, b) => {
+      return formatToDate(b).getTime() - formatToDate(a).getTime();
+    });
 
-      for (const obj of data) {
-        const date = formatToDate(obj);
-        const monthKey = `${months[date.getMonth()]}-${date.getFullYear()}`;
-        dateSet.add(monthKey);
-        typeSet.add(obj.type);
-      }
+    return groupByMonths(sorted);
+  }, [transactions]);
 
-      const sorted = [...data].sort((a, b) => {
-        return formatToDate(b).getTime() - formatToDate(a).getTime();
-      });
+  const filterData = useMemo(() => {
+    const obje = Object.entries(transactionsGrouped);
 
-      const grouped = groupByMonths(sorted);
-      setShowedData(grouped);
-    } catch (error) {
-      console.error("Error:", error);
-    }
-  }, []);
-
-  const readJsonFile = useCallback(async () => {
-    setLoading(true);
-    try {
-      removeCreditDatas(transactions);
-    } catch (error) {
-      console.error("Error:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [transactions, removeCreditDatas]);
-
-  useEffect(() => {
-    readJsonFile();
-  }, [readJsonFile]);
-
-  const filterData = useCallback(
-    (month: IFormattedData[]) => {
-      const filteredData = month
+    const data = obje.map(([key, data]) => {
+      const filteredData = data
         .filter(
           (item) =>
             selectedFilterType === "" || selectedFilterType === item.type,
@@ -100,54 +57,22 @@ export default function Home() {
           );
         });
 
-      return filteredData;
-    },
-    [selectedFilterType, selectedFilterCategory],
-  );
-
-  const formatTotalValue = useCallback(() => {
-    let inTotal = 0;
-    let outTotal = 0;
-
-    for (const item of filterData(transactions)) {
-      if (selectedItemToExclude.includes(item.id)) {
-        continue;
-      }
-
-      const valorItem = Number(item.amount);
-      if (valorItem > 0) {
-        inTotal += valorItem;
-      } else {
-        outTotal += valorItem;
-      }
-    }
-
-    setValue({
-      in: inTotal.toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-      }),
-      out: outTotal.toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-      }),
+      return [key, filteredData] as [string, IFormattedData[]];
     });
-  }, [transactions, setValue, selectedItemToExclude, filterData]);
+
+    return data as [string, IFormattedData[]][];
+  }, [
+    transactionsGrouped,
+    selectedFilterType,
+    selectedFilterCategory,
+    selectedItemToExclude,
+  ]);
 
   useEffect(() => {
-    formatTotalValue();
-  }, [formatTotalValue]);
+    const allDatas = filterData.flatMap(([_, items]) => items);
 
-  const searchWithFilters = () => {
-    const from = filterDate?.from
-      ? new Date(filterDate.from).getTime()
-      : undefined;
-    const to = filterDate?.to ? new Date(filterDate.to).getTime() : undefined;
-
-    if (from && to) {
-      refreshTransactions(from, to);
-    }
-  };
+    calcValue(allDatas, selectedItemToExclude);
+  }, [filterData, selectedItemToExclude]);
 
   const handleDeleteItem = (item: IFormattedData) => {
     setItemToDelete(item);
@@ -171,51 +96,18 @@ export default function Home() {
 
   return (
     <div className="flex max-w-6xl w-full flex-col mt-24 m-auto">
-      <div className="flex items-end gap-5 p-2 max-sm:flex-wrap">
-        <div className="flex gap-1  max-sm:w-full">
-          <DatePickerWithRange />
-        </div>
+      <Filters
+        setEnableEdit={setEnableEdit}
+        setSelectedFilterType={setSelectedFilterType}
+        selectedFilterType={selectedFilterType}
+        selectedFilterCategory={selectedFilterCategory}
+        setSelectedFilterCategory={setSelectedFilterCategory}
+      />
 
-        <div className="flex gap-1  max-sm:w-full">
-          <Select
-            title="Todos"
-            label="Tipo:"
-            options={typesOptions}
-            selected={selectedFilterType}
-            onSelect={(value) => setSelectedFilterType(value)}
-          />
-        </div>
-
-        <div className="flex gap-1  max-sm:w-full">
-          <MultiSelect
-            label="Categoria:"
-            options={[...categories.map((cat) => cat.name), "Outros"]}
-            selected={selectedFilterCategory}
-            onSelect={(value) => setSelectedFilterCategory(value)}
-          />
-        </div>
-
-        <Button
-          className="flex items-center justify-center bg-green-700 hover:bg-green-800 text-white max-sm:w-full"
-          onClick={searchWithFilters}
-        >
-          Buscar
-          <PiMagnifyingGlass />
-        </Button>
-
-        <Button
-          className="flex items-center justify-center bg-yellow-700 hover:bg-yellow-800 text-white max-sm:w-full"
-          onClick={() => setEnableEdit((prev) => !prev)}
-        >
-          Editar
-          <PiPen />
-        </Button>
-      </div>
-
-      {Object.entries(showedData)?.[0]?.[0] && (
+      {Object.entries(transactionsGrouped)?.[0]?.[0] && (
         <div className="flex w-full items-center justify-center text-zinc-400 py-4 sticky top-0">
           <h2 className="text-base text-center">
-            {Object.entries(showedData)?.[0]?.[0]}
+            {Object.entries(transactionsGrouped)?.[0]?.[0]}
           </h2>
         </div>
       )}
@@ -226,7 +118,7 @@ export default function Home() {
           <Loading />
         </div>
       ) : (
-        Object.entries(showedData)?.map(([key, month], index) => {
+        filterData?.map(([key, month], index) => {
           return (
             <div key={key} className="gap-1 flex flex-col relative px-2">
               {index !== 0 && (
@@ -235,7 +127,7 @@ export default function Home() {
                 </div>
               )}
 
-              {filterData(month).map((item) => {
+              {month.map((item) => {
                 return (
                   <DataTable
                     item={item}

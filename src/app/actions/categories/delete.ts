@@ -15,7 +15,7 @@ export async function deleteCategories({ id }: DeleteCategoriesParams) {
 
     await db.collection("categories").doc(id).delete();
 
-    revalidateTag("categories-list");
+    revalidateTag("categories-list", "max");
   } catch (error) {
     console.error("Error deleting categories:", error);
     throw error;

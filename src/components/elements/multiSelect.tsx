@@ -67,7 +67,7 @@ const MultiSelect = ({
           disabled={isLoading || disabled}
           defaultValue={defaultValue}
           asChild
-          className="w-60 h-9 rounded-md text-primary-foreground bg-white justify-start px-2.5 font-normal shadow-[0_1px_2px] shadow-black outline-none max-sm:w-full"
+          className="w-60 h-9 rounded-md text-primary-foreground bg-white justify-between px-2.5 font-normal shadow-[0_1px_2px] shadow-black outline-none max-sm:w-full"
         >
           <button className="flex items-center justify-between text-sm shadow-[0_1px_2px] shadow-black">
             <span className="truncate">
@@ -75,7 +75,7 @@ const MultiSelect = ({
                 ? selected.join(", ")
                 : "Todos") || title}
             </span>
-            <TbTriangleInvertedFilled size={15} className="flex-shrink-0" />
+            <TbTriangleInvertedFilled size={13} className="shrink-0" />
           </button>
         </DropdownMenu.Trigger>
 
@@ -89,8 +89,8 @@ const MultiSelect = ({
                 checked={selected?.length === options.length}
                 onSelect={(e) => handleSelectMultiple(e, "Todos")}
               >
-                <DropdownMenu.ItemIndicator className="absolute left-0 inline-flex w-[25px] items-center justify-center">
-                  <CheckIcon />
+                <DropdownMenu.ItemIndicator className="absolute left-0 inline-flex items-center justify-center">
+                  <CheckIcon className="size-3.5" />
                 </DropdownMenu.ItemIndicator>
                 <span className="text-ellipsis max-w-xs">{"Todos"}</span>
               </DropdownMenu.CheckboxItem>

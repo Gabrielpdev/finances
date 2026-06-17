@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Poppins, Inter } from "next/font/google";
+import { Inter } from "next/font/google";
 import { ToastContainer } from "react-toastify";
 
 import FirebaseProvider from "@/providers/firebase";
@@ -39,16 +39,16 @@ export default function RootLayout({
     <html lang="en" className={cn("font-sans", inter.variable)}>
       <body className={inter.className}>
         <FirebaseProvider>
-          <CurrencyProvider>
-            <TransactionsProvider>
+          <TransactionsProvider>
+            <CurrencyProvider>
               <div className="bg-neutral-200 min-h-screen h-full pb-4 overflow-hidden">
                 <ToastContainer />
                 <Header />
 
                 {children}
               </div>
-            </TransactionsProvider>
-          </CurrencyProvider>
+            </CurrencyProvider>
+          </TransactionsProvider>
         </FirebaseProvider>
       </body>
     </html>

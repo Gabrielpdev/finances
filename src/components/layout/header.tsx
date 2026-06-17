@@ -10,9 +10,13 @@ import { usePathname } from "next/navigation";
 export default function Header() {
   const path = usePathname();
 
-  const { isUserAllowed, logout } = useContext(UserContext);
+  const { logout } = useContext(UserContext);
 
-  return !isUserAllowed ? null : (
+  if (path === "/login" || path === "/not-allowed") {
+    return null;
+  }
+
+  return (
     <div
       className={`bg-lime-900 w-full flex justify-center pt-8 ${path === "/dashboard" ? "py-8" : "h-48"}`}
     >

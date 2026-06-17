@@ -16,12 +16,12 @@ import { EditManualTransaction } from "./components/EditManualTransaction";
 import { removeDuplicates, removeSelectedItem } from "./helpers/formaters";
 import { List } from "./components/List";
 import { addAllFutureInstallments } from "@/helpers/addFutureInstallments";
+import { transactionsWithCategories } from "@/helpers/transactionsWithCategories";
 
 export default function Import() {
   const { push } = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const [json, setJson] = useState<IData[]>([]);
   const [transactionWithCategories, setTransactionWithCategories] = useState<
     IFormattedData[]
   >([]);
@@ -33,12 +33,8 @@ export default function Import() {
   const [editingTransaction, setEditingTransaction] =
     useState<IFormattedData | null>(null);
 
-  const {
-    transactions,
-    categories,
-    refreshTransactions,
-    returnTransactionWithCategories,
-  } = useContext(TransactionsContext);
+  const { transactions, categories, refreshTransactions } =
+    useContext(TransactionsContext);
 
   const handleFileChange = (e: any) => {
     e.preventDefault();
@@ -50,12 +46,7 @@ export default function Import() {
         reader.onload = function (e) {
           const content = e?.target?.result as string;
           const json = csvJSON(content);
-
-          setJson(json);
-          const transactions = returnTransactionWithCategories(
-            json,
-            categories,
-          );
+          const transactions = transactionsWithCategories(json, categories);
           setTransactionWithCategories(transactions);
         };
         reader.readAsText(file);
@@ -90,12 +81,14 @@ export default function Import() {
   const handleSaveJSON = async () => {
     setLoading(true);
     try {
-      const removedDuplicates = removeDuplicates(json, transactions);
+      const removedDuplicates = removeDuplicates(
+        transactionWithCategories,
+        transactions,
+      );
       const removedSelectedItem = removeSelectedItem(
         removedDuplicates,
         selectedToDelete,
       );
-      // const withTimeStamp = addTimeStamp(removedSelectedItem);
 
       if (removedSelectedItem.length > 0) {
         await Promise.all(
@@ -107,7 +100,7 @@ export default function Import() {
         await refreshTransactions();
       }
 
-      setJson([]);
+      setTransactionWithCategories([]);
       fileRef.current!.value = "";
       push("/dashboard");
     } catch (error) {
@@ -121,28 +114,24 @@ export default function Import() {
     const transactionsWithFutureInstallments = addAllFutureInstallments([
       newTransaction,
     ]);
-    const updatedJson = [...json, ...transactionsWithFutureInstallments];
+    const updatedJson = [
+      ...transactionWithCategories,
+      ...transactionsWithFutureInstallments,
+    ];
 
-    setJson(updatedJson);
-    const formattedTransaction = returnTransactionWithCategories(
+    const formattedTransaction = transactionsWithCategories(
       updatedJson,
       categories,
     );
     setTransactionWithCategories(formattedTransaction);
   };
 
-  const handleEditTransaction = async (updatedTransaction: IData) => {
-    const updatedJson = json.map((item) =>
+  const handleEditTransaction = async (updatedTransaction: IFormattedData) => {
+    const updatedJson = transactionWithCategories.map((item) =>
       item.id === updatedTransaction.id ? updatedTransaction : item,
     );
 
-    setJson(updatedJson);
-
-    const formattedTransaction = returnTransactionWithCategories(
-      updatedJson,
-      categories,
-    );
-    setTransactionWithCategories(formattedTransaction);
+    setTransactionWithCategories(updatedJson);
   };
 
   return (

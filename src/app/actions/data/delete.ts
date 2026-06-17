@@ -15,7 +15,7 @@ export async function deleteTransaction({ id }: DeleteTransactionParams) {
 
     await db.collection("transactions").doc(id).delete();
 
-    revalidateTag("data-list");
+    revalidateTag("data-list", "max");
   } catch (error) {
     console.error("Error deleting transaction:", error);
     throw error;

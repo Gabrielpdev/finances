@@ -12,7 +12,7 @@ export async function createCategories(data: ICategory) {
 
     await db.collection("categories").add(data);
 
-    revalidateTag("categories-list");
+    revalidateTag("categories-list", "max");
   } catch (error) {
     console.error("Error creating categories:", error);
     throw error;

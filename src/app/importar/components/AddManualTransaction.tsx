@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { v4 as uuidv4 } from "uuid";
+import { Input } from "@/components/ui/input";
 
 interface AddManualTransactionProps {
   isOpen: boolean;
@@ -109,17 +110,14 @@ export function AddManualTransaction({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="date">Data</Label>
-              <input
-                id="date"
-                type="date"
-                name="date"
-                value={formData.date}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-              />
-            </div>
+            <Input
+              label="Data"
+              id="date"
+              type="date"
+              name="date"
+              value={formData.date}
+              onChange={handleChange}
+            />
 
             <div>
               <Label htmlFor="type">Tipo</Label>
@@ -136,45 +134,36 @@ export function AddManualTransaction({
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="description">Descrição *</Label>
-            <input
-              id="description"
-              type="text"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              placeholder="Ex: Supermercado"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-            />
-          </div>
+          <Input
+            label="Descrição *"
+            id="description"
+            type="text"
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            placeholder="Ex: Supermercado"
+          />
 
-          <div>
-            <Label htmlFor="amount">Valor *</Label>
-            <input
-              id="amount"
-              type="number"
-              name="amount"
-              value={formData.amount}
-              onChange={handleChange}
-              placeholder="0.00"
-              step="0.01"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-            />
-          </div>
+          <Input
+            label="Valor *"
+            id="amount"
+            type="number"
+            name="amount"
+            value={formData.amount}
+            onChange={handleChange}
+            placeholder="0.00"
+            step="0.01"
+          />
 
-          <div>
-            <Label htmlFor="holder">Titular</Label>
-            <input
-              id="holder"
-              type="text"
-              name="holder"
-              value={formData.holder}
-              onChange={handleChange}
-              placeholder="Ex: Conta Corrente"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-            />
-          </div>
+          <Input
+            label="Titular"
+            id="holder"
+            type="text"
+            name="holder"
+            value={formData.holder}
+            onChange={handleChange}
+            placeholder="Ex: Conta Corrente"
+          />
 
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -198,30 +187,25 @@ export function AddManualTransaction({
           <div>
             <Label>Parcelas</Label>
             <div className="flex items-center gap-2">
-              <div className="flex-1">
-                <input
-                  type="number"
-                  name="currentInstallment"
-                  value={formData.currentInstallment}
-                  onChange={handleChange}
-                  min="1"
-                  placeholder="Atual"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                />
-              </div>
+              <Input
+                type="number"
+                name="currentInstallment"
+                value={formData.currentInstallment}
+                onChange={handleChange}
+                min="1"
+                placeholder="Atual"
+              />
               <span className="text-gray-600 font-semibold">de</span>
-              <div className="flex-1">
-                <input
-                  type="number"
-                  name="totalInstallments"
-                  value={formData.totalInstallments}
-                  onChange={handleChange}
-                  min="1"
-                  placeholder="Total"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                />
-              </div>
+              <Input
+                type="number"
+                name="totalInstallments"
+                value={formData.totalInstallments}
+                onChange={handleChange}
+                min="1"
+                placeholder="Total"
+              />
             </div>
+
             <p className="text-sm text-gray-500 mt-2">
               {formData.currentInstallment && formData.totalInstallments
                 ? `Parcela ${formData.currentInstallment} de ${formData.totalInstallments}`
