@@ -108,9 +108,13 @@ export default function TransactionsProvider({
 
     const now = new Date().getTime();
 
+    const twoMonthsLater = new Date();
+    twoMonthsLater.setMonth(new Date().getMonth() + 2);
+
     const savedData = await listDatas({
       categories,
       start: now,
+      end: twoMonthsLater.getTime(),
     });
 
     setFutureTransactions(savedData);

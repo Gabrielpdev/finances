@@ -17,6 +17,7 @@ import { removeDuplicates, removeSelectedItem } from "./helpers/formaters";
 import { List } from "./components/List";
 import { addAllFutureInstallments } from "@/helpers/addFutureInstallments";
 import { transactionsWithCategories } from "@/helpers/transactionsWithCategories";
+import { Button } from "@/components/ui/button";
 
 export default function Import() {
   const { push } = useRouter();
@@ -194,14 +195,13 @@ export default function Import() {
           </svg>
           Permitido apenas arquivos CSV
         </div>
-        <button
-          className={`w-36 rounded bg-green-600 text-white p-2 br-2 hover:bg-green-700 ${
-            loading ? "opacity-50 cursor-not-allowed" : ""
-          }`}
+        <Button
+          className={`w-36 rounded bg-green-600 text-white p-2 br-2 hover:bg-green-700 `}
+          loading={loading}
           onClick={handleSaveJSON}
         >
           Enviar
-        </button>
+        </Button>
       </div>
 
       {transactionWithCategories.length > 0 && (

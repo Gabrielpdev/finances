@@ -5,10 +5,17 @@ import ListItem from "./components/ListItem";
 import { CreateCategoryModal } from "./components/CreateCategoryModal";
 import { TransactionsContext } from "@/providers/transactions";
 import { Button } from "@/components/ui/button";
+import { Loading } from "@/components/loading";
 
 export default function Category() {
-  const { categories } = useContext(TransactionsContext);
+  const { categories, loading } = useContext(TransactionsContext);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  if (loading) {
+    <div className="w-full h-60 flex items-center justify-center">
+      <Loading />
+    </div>;
+  }
 
   return (
     <div className="flex max-w-6xl w-full flex-col m-auto">

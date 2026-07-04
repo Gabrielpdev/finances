@@ -15,6 +15,7 @@ import { DatePickerWithRange } from "@/components/elements/calendar";
 import { PiMagnifyingGlass } from "react-icons/pi";
 import { Button } from "@/components/ui/button";
 import { groupTypes } from "@/helpers/getValuesOnTypes";
+import { Loading } from "@/components/loading";
 
 export default function Home() {
   const [chartCategoriesData, setChartCategoriesData] = useState<
@@ -30,6 +31,7 @@ export default function Home() {
     refreshTransactions,
     getFutureTransactions,
     futureTransactions,
+    loading,
   } = useContext(TransactionsContext);
 
   const removeCreditDatas = useCallback(() => {
@@ -64,6 +66,12 @@ export default function Home() {
     }
   };
 
+  if (loading) {
+    <div className="w-full h-60 flex items-center justify-center">
+      <Loading />
+    </div>;
+  }
+
   return (
     <div className="flex  flex-col p-8 gap-4 w-full mt-5 max-sm:p-2">
       <h2 className="text-5xl font-semibold">Visão Geral</h2>
@@ -81,7 +89,7 @@ export default function Home() {
       </div>
 
       <h4 className="text-2xl flex flex-col font-semibold">
-        Gastos futuros:
+        Gastos futuros ( 2 meses ):
         <span className="text-sm  text-gray-600">
           após {new Date()?.toLocaleDateString("pt-BR")}
         </span>
