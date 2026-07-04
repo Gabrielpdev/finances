@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 
 import { IFormattedData } from "@/types/data";
 

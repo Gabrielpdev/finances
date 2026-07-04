@@ -10,6 +10,7 @@ import Header from "@/components/layout/header";
 import "./globals.css";
 import TransactionsProvider from "@/providers/transactions";
 import { cn } from "@/lib/utils";
+import { checkUserToken } from "./actions/checkUserToken";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -30,26 +31,32 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const result = await checkUserToken();
+
   return (
     <html lang="en" className={cn("font-sans", inter.variable)}>
       <body className={inter.className}>
-        <FirebaseProvider>
-          <TransactionsProvider>
-            <CurrencyProvider>
-              <div className="bg-neutral-200 min-h-screen h-full pb-4 overflow-hidden">
-                <ToastContainer />
-                <Header />
+        <div className="bg-neutral-200 min-h-screen h-full pb-4 overflow-hidden">
+          <FirebaseProvider>
+            {result.valid ? (
+              <TransactionsProvider>
+                <CurrencyProvider>
+                  <ToastContainer />
+                  <Header />
 
-                {children}
-              </div>
-            </CurrencyProvider>
-          </TransactionsProvider>
-        </FirebaseProvider>
+                  {children}
+                </CurrencyProvider>
+              </TransactionsProvider>
+            ) : (
+              children
+            )}
+          </FirebaseProvider>
+        </div>
       </body>
     </html>
   );

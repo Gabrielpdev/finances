@@ -123,6 +123,7 @@ export default function TransactionsProvider({
 
   // Initialize on mount
   const init = async () => {
+    setLoading(true);
     const result = await checkUserToken();
 
     if (!result.valid) {
@@ -132,14 +133,13 @@ export default function TransactionsProvider({
 
     const savedCategories = await listCategories();
 
-    setCategories(savedCategories);
-
     const savedData = await listDatas({
       categories: savedCategories,
       start: startOfCurrentMonth.getTime(),
       end: endOfCurrentMonth.getTime(),
     });
 
+    setCategories(savedCategories);
     setTransactions(savedData);
     setLoading(false);
   };
@@ -147,7 +147,6 @@ export default function TransactionsProvider({
   useEffect(() => {
     if (isInitializedRef.current) return;
     isInitializedRef.current = true;
-    setLoading(true);
 
     init();
   }, []);

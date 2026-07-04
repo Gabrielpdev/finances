@@ -1,11 +1,12 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { UserContext } from "@/providers/firebase";
 import Image from "next/image";
 import { useContext } from "react";
 
 export default function Login() {
-  const { login } = useContext(UserContext);
+  const { login, loading } = useContext(UserContext);
 
   return (
     <div className="flex justify-center items-center h-screen w-full">
@@ -13,9 +14,11 @@ export default function Login() {
         <h1 className="text-2xl font-bold mb-4 text-green-700">
           Login with Google
         </h1>
-        <button
+        <Button
           className="flex justify-between text-xl items-center gap-3 px-4 py-2 bg-gray-700 w-36 text-white rounded"
           onClick={login}
+          disabled={loading}
+          loading={loading}
         >
           LOGIN
           <Image
@@ -25,7 +28,7 @@ export default function Login() {
             height={32}
             className="w-6 h-6"
           />
-        </button>
+        </Button>
       </div>
     </div>
   );

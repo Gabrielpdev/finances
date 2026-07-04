@@ -6,6 +6,7 @@ import { useContext } from "react";
 import { UserContext } from "@/providers/firebase";
 import { PiSignOut } from "react-icons/pi";
 import { usePathname } from "next/navigation";
+import { Button } from "../ui/button";
 
 export default function Header() {
   const path = usePathname();
@@ -41,12 +42,13 @@ export default function Header() {
             </Link>
           </div>
 
-          <button
+          <Button
+            variant="invisible"
             onClick={logout}
             className="text-white text-2xl max-sm:absolute max-sm:top-6 max-sm:right-6"
           >
             <PiSignOut />
-          </button>
+          </Button>
         </div>
 
         <HeaderDescription />

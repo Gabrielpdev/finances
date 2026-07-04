@@ -16,14 +16,6 @@ export default async function proxy(req: NextRequest) {
   const protectedPath = isProtectedPath(pathname);
   const isAuthPage = pathname === "/login" || pathname === "/not-allowed";
 
-  // console.log("Proxy Middleware:", {
-  //   pathname,
-  //   protectedPath,
-  //   isAuthPage,
-  //   result,
-  //   tokenValid: result.valid,
-  // });
-
   if (!result.valid) {
     if (protectedPath) {
       return NextResponse.redirect(new URL("/login", origin));

@@ -21,15 +21,23 @@ export default function FirebaseProvider({
   const { push } = useRouter();
 
   const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const login = async () => {
-    const userCred = await signInWithPopup(auth, provider);
+    setLoading(true);
+    try {
+      const userCred = await signInWithPopup(auth, provider);
 
-    const token = await userCred.user.getIdToken();
-    await createSession(token!);
+      const token = await userCred.user.getIdToken();
+      await createSession(token!);
 
-    setUser(userCred.user);
-    push("/home");
+      setUser(userCred.user);
+      push("/home");
+    } catch (error) {
+      console.error("Login error:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const logout = async () => {
@@ -41,6 +49,7 @@ export default function FirebaseProvider({
   return (
     <UserContext.Provider
       value={{
+        loading,
         user,
         login,
         logout,
