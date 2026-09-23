@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import { groupCategories } from "@/helpers/getValuesOnCategories";
 import SimpleBarChart, { IBarChartData } from "@/components/elements/bar-chart";
@@ -43,6 +43,14 @@ export default function Home() {
     removeCreditDatas();
     getFutureTransactions();
   }, [removeCreditDatas]);
+
+  const futureExpensesTotal = useMemo(
+    () =>
+      futureTransactions
+        .filter((item) => item.amount < 0)
+        .reduce((total, item) => total + item.amount, 0),
+    [futureTransactions],
+  );
 
   const onSelectCategory = useCallback(
     (category: MouseHandlerDataParam) => {
@@ -88,10 +96,14 @@ export default function Home() {
         </Button>
       </div>
 
-      <h4 className="text-2xl flex flex-col font-semibold">
-        Gastos futuros ( 2 meses ):
-        <span className="text-sm  text-gray-600">
-          após {new Date()?.toLocaleDateString("pt-BR")}
+      <h4 className="text-2xl font-semibold">
+        Gastos futuros:
+        <span className="text-lg font-semibold text-gray-800">
+          {` `}
+          {futureExpensesTotal.toLocaleString("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+          })}
         </span>
       </h4>
       <div className="flex items-center flex-col justify-center gap-4 w-full bg-white rounded-lg shadow-md">

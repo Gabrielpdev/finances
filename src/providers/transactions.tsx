@@ -105,16 +105,21 @@ export default function TransactionsProvider({
 
   const getFutureTransactions = async () => {
     setLoading(true);
+    const now = new Date();
+    const nextMonth = new Date();
 
-    const now = new Date().getTime();
+    nextMonth.setDate(1);
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
 
-    const twoMonthsLater = new Date();
-    twoMonthsLater.setMonth(new Date().getMonth() + 2);
+    const endOfNextMonth = new Date(nextMonth);
+    endOfNextMonth.setMonth(endOfNextMonth.getMonth() + 1);
+    endOfNextMonth.setDate(0);
+    endOfNextMonth.setHours(23, 59, 59, 999);
 
     const savedData = await listDatas({
       categories,
-      start: now,
-      end: twoMonthsLater.getTime(),
+      start: now.getTime(),
+      end: endOfNextMonth.getTime(),
     });
 
     setFutureTransactions(savedData);

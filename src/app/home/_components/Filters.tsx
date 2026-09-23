@@ -6,13 +6,11 @@ import Select from "@/components/elements/select";
 import { TransactionsContext } from "@/providers/transactions";
 import { DatePickerWithRange } from "@/components/elements/calendar";
 import { Button } from "@/components/ui/button";
-import { PiMagnifyingGlass, PiPen } from "react-icons/pi";
-import { Switch } from "@/components/ui/switch";
+import { PiMagnifyingGlass } from "react-icons/pi";
 
 const typesOptions = ["Xp", "Mercado Pago"];
 
 interface IFiltersProps {
-  setEnableEdit: React.Dispatch<React.SetStateAction<boolean>>;
   setSelectedFilterType: React.Dispatch<React.SetStateAction<string>>;
   selectedFilterType: string;
   selectedFilterCategory: string[];
@@ -20,7 +18,6 @@ interface IFiltersProps {
 }
 
 export default function Filters({
-  setEnableEdit,
   setSelectedFilterType,
   selectedFilterType,
   selectedFilterCategory,
@@ -73,12 +70,6 @@ export default function Filters({
           Buscar
           <PiMagnifyingGlass />
         </Button>
-
-        <Switch
-          className=" max-sm:w-[20%]"
-          label="Editar"
-          onCheckedChange={(checked) => setEnableEdit(checked)}
-        />
       </div>
     </div>
   );

@@ -8,11 +8,9 @@ import { formatToDate } from "@/utils/formatToDate";
 import { groupByMonths } from "@/helpers/groupByMonths";
 import { DataTable } from "@/components/modules/dataTable";
 import { HeaderTable } from "@/components/modules/headerTable";
-import { ConfirmDeleteModal } from "@/components/modules/confirmDeleteModal";
+import { EditTransactionModal } from "@/components/modules/editTransactionModal";
 
 import { TransactionsContext } from "@/providers/transactions";
-import { toast } from "react-toastify";
-import { deleteTransaction } from "../actions/data/delete";
 import Filters from "./_components/Filters";
 import { CurrencyContext } from "@/providers/currency";
 
@@ -24,13 +22,12 @@ export default function Home() {
   const [selectedItemToExclude, setSelectedItemToExclude] = useState<string[]>(
     [],
   );
-  const [enableEdit, setEnableEdit] = useState(false);
 
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<IFormattedData | null>(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<IFormattedData | null>(null);
 
   const { calcValue } = useContext(CurrencyContext);
-  const { transactions, refreshTransactions, loading } =
+  const { transactions, refreshTransactions, categories, loading } =
     useContext(TransactionsContext);
 
   const transactionsGrouped = useMemo(() => {
@@ -74,30 +71,19 @@ export default function Home() {
     calcValue(allDatas, selectedItemToExclude);
   }, [filterData, selectedItemToExclude]);
 
-  const handleDeleteItem = (item: IFormattedData) => {
-    setItemToDelete(item);
-    setDeleteModalOpen(true);
+  const handleEditItem = (item: IFormattedData) => {
+    setSelectedItem(item);
+    setEditModalOpen(true);
   };
 
-  const handleConfirmDelete = async () => {
-    if (!itemToDelete) return;
-
-    try {
-      await deleteTransaction({ id: itemToDelete.id });
-      refreshTransactions();
-      setDeleteModalOpen(false);
-      setItemToDelete(null);
-      toast.success("Item excluído com sucesso!");
-    } catch (error) {
-      console.error("Error deleting item:", error);
-      toast.error("Erro ao excluir item. Por favor, tente novamente.");
-    }
+  const handleCloseEditModal = () => {
+    setEditModalOpen(false);
+    setSelectedItem(null);
   };
 
   return (
     <div className="flex max-w-6xl w-full flex-col mt-24 m-auto">
       <Filters
-        setEnableEdit={setEnableEdit}
         setSelectedFilterType={setSelectedFilterType}
         selectedFilterType={selectedFilterType}
         selectedFilterCategory={selectedFilterCategory}
@@ -133,8 +119,7 @@ export default function Home() {
                     item={item}
                     selectedItemToExclude={selectedItemToExclude}
                     setSelectedItemToExclude={setSelectedItemToExclude}
-                    enableEdit={enableEdit}
-                    onLongPress={handleDeleteItem}
+                    onDoubleClick={handleEditItem}
                     key={item.id}
                   />
                 );
@@ -144,17 +129,12 @@ export default function Home() {
         })
       )}
 
-      <ConfirmDeleteModal
-        isOpen={deleteModalOpen}
-        title="Confirmar Exclusão"
-        description={`Tem certeza que deseja excluir "${itemToDelete?.description}" ?`}
-        onConfirm={handleConfirmDelete}
-        onCancel={() => {
-          setDeleteModalOpen(false);
-          setItemToDelete(null);
-        }}
-        confirmText="Excluir"
-        cancelText="Cancelar"
+      <EditTransactionModal
+        isOpen={editModalOpen}
+        transaction={selectedItem}
+        categories={categories}
+        onClose={handleCloseEditModal}
+        onDeleted={refreshTransactions}
       />
     </div>
   );
