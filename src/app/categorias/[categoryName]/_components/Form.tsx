@@ -9,6 +9,7 @@ import { TransactionsContext } from "@/providers/transactions";
 import { deleteCategories } from "@/app/actions/categories/delete";
 import { ColorPicker } from "@/components/ui/color-picker";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 interface FormProps {
   selectedCategory: ICategory | undefined;
@@ -136,20 +137,18 @@ export default function CategoryForm({
           type="number"
         />
 
-        <button
-          type="submit"
-          className="text-white bg-green-700 rounded-md p-2 font-extrabold hover:bg-green-800"
-        >
+        <Button type="submit" className="font-extrabold">
           Salvar
-        </button>
+        </Button>
       </form>
-      <button
+      <Button
         type="button"
+        variant="destructive"
         onClick={handleDeleteCategory}
-        className="text-white bg-red-700 rounded-md p-2 font-extrabold hover:bg-red-800"
+        className="font-extrabold"
       >
         Deletar
-      </button>
+      </Button>
     </div>
   );
 }

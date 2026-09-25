@@ -30,7 +30,7 @@ const SimpleHorizontalBarChart = ({ data }: IBarChartProps) => {
               {entry.name}:
             </span>
 
-            <div className="flex-1 col-span-2 w-full h-6 bg-gray-200 rounded-md overflow-hidden relative">
+            <div className="relative col-span-2 h-6 w-full flex-1 overflow-hidden rounded-md bg-muted">
               <div
                 className="h-6 rounded-md absolute top-0 left-0"
                 style={{
@@ -43,7 +43,7 @@ const SimpleHorizontalBarChart = ({ data }: IBarChartProps) => {
             <span className={cn("max-sm:text-xs")}>
               <span
                 className={cn({
-                  "text-red-500": percentage >= 100,
+                  "font-semibold text-expense": percentage >= 100,
                 })}
               >
                 {percentage.toFixed(2)}%

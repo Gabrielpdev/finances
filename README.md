@@ -24,10 +24,22 @@ This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-opti
 
 To learn more about Next.js, take a look at the following resources:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+
+## Design system
+
+The interface uses semantic CSS tokens defined in `src/app/globals.css`.
+Components should consume these tokens instead of hardcoded palette utilities.
+
+- `primary`: main actions and navigation emphasis.
+- `income` and `expense`: positive and negative financial values.
+- `balance`: balance and neutral financial summaries.
+- `success`, `warning`, `info` and `destructive`: feedback states.
+- `chart-1` through `chart-5`: data visualization colors.
+
+Shared UI primitives live in `src/components/ui`. Prefer their variants and
+the `cn` helper when composing screens. New components should preserve visible
+keyboard focus and support mobile layouts without changing financial contracts.
 
 ## Deploy on Vercel
 

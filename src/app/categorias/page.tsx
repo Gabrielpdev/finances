@@ -18,18 +18,15 @@ export default function Category() {
   }
 
   return (
-    <div className="flex max-w-6xl w-full flex-col m-auto">
+    <div className="flex container mx-auto mt-4 w-full flex-col rounded-xl border border-border/70 bg-card p-3 shadow-sm">
       <div className={`max-sm:p-4 w-full mt-4 flex flex-col mb-20`}>
-        <div className="flex justify-end items-center px-5">
-          <Button
-            onClick={() => setIsModalOpen(true)}
-            className="bg-green-600 text-white hover:bg-green-700"
-          >
-            + Nova Categoria
-          </Button>
+        <div className="flex justify-end items-center px-5 ">
+          <Button onClick={() => setIsModalOpen(true)}>+ Nova Categoria</Button>
         </div>
 
-        <div className={`grid grid-cols-10 my-2 px-5`}>
+        <div
+          className={`grid grid-cols-10 my-2 px-5 border-y border-border bg-muted rounded-xl`}
+        >
           <span
             className={`w-full flex items-center text-blue-950 m-2 col-span-9`}
           >

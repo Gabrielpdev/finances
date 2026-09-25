@@ -82,7 +82,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex max-w-6xl w-full flex-col mt-24 m-auto">
+    <div className="flex container w-full flex-col mt-28 mx-auto gap-1 rounded-xl border border-border/70 bg-card p-3 shadow-sm">
       <Filters
         setSelectedFilterType={setSelectedFilterType}
         selectedFilterType={selectedFilterType}
@@ -106,7 +106,7 @@ export default function Home() {
       ) : (
         filterData?.map(([key, month], index) => {
           return (
-            <div key={key} className="gap-1 flex flex-col relative px-2">
+            <div key={key} className="gap-1 flex flex-col relative">
               {index !== 0 && (
                 <div className="flex w-full items-center justify-center text-zinc-400 py-4 sticky top-0">
                   <h2 className="text-base text-center">{key}</h2>

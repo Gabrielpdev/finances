@@ -18,16 +18,16 @@ export default function Header() {
   }
 
   return (
-    <div
-      className={`bg-lime-900 w-full flex justify-center pt-8 ${path === "/dashboard" ? "py-8" : "h-48"}`}
+    <header
+      className={`w-full flex justify-center bg-sidebar pt-8 text-sidebar-foreground ${path === "/dashboard" ? "py-8" : "h-48"}`}
     >
-      <div className="max-w-6xl w-full flex flex-col items-start justify-between max-sm:px-5">
-        <div className="max-w-6xl w-full flex items-start justify-between max-sm:flex-col max-sm:gap-9 max-sm:items-center">
+      <div className="container mx-auto w-full flex flex-col items-start justify-between max-sm:px-5">
+        <div className="w-full flex items-start justify-between max-sm:flex-col max-sm:gap-9 max-sm:items-center">
           <Link href="/dashboard" className="flex">
             <Image src="/logo.svg" alt="logo" width={175} height={25} />
           </Link>
 
-          <div className="flex text-white gap-8 max-md:text-sm ">
+          <nav className="flex gap-8 text-sm text-sidebar-foreground/80 max-md:gap-4 max-md:text-xs">
             <Link href="/dashboard" className="flex">
               Dashboard
             </Link>
@@ -40,12 +40,13 @@ export default function Header() {
             <Link href="/importar" className="flex">
               Importar
             </Link>
-          </div>
+          </nav>
 
           <Button
             variant="invisible"
             onClick={logout}
-            className="text-white text-2xl max-sm:absolute max-sm:top-6 max-sm:right-6"
+            aria-label="Sair"
+            className="text-2xl text-sidebar-foreground hover:bg-sidebar-accent max-sm:absolute max-sm:top-6 max-sm:right-6"
           >
             <PiSignOut />
           </Button>
@@ -53,6 +54,6 @@ export default function Header() {
 
         <HeaderDescription />
       </div>
-    </div>
+    </header>
   );
 }

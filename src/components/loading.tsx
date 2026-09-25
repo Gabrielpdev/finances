@@ -2,7 +2,7 @@ export function Loading() {
   return (
     <svg
       aria-hidden="true"
-      className="w-14 h-14 text-gray-200 animate-spin dark:text-gray-400 fill-green-600"
+      className="h-12 w-12 animate-spin text-muted fill-primary"
       viewBox="0 0 100 101"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

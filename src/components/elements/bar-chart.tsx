@@ -33,16 +33,16 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
     return (
       <div
         style={{
-          backgroundColor: "white",
+          backgroundColor: "var(--popover)",
           padding: "10px",
-          border: "1px solid #ccc",
+          border: "1px solid var(--border)",
           borderRadius: "4px",
         }}
       >
         <p style={{ margin: 0, fontWeight: "bold" }}>
           {payload[0].payload.name}
         </p>
-        <p style={{ margin: "4px 0 0 0", color: "#8884d8" }}>
+        <p style={{ margin: "4px 0 0 0", color: "var(--chart-1)" }}>
           {payload[0].value?.toLocaleString("pt-BR", {
             style: "currency",
             currency: "BRL",
@@ -77,7 +77,7 @@ const SimpleBarChart = ({ data, onSelectBar }: IBarChartProps) => {
       <XAxis dataKey="name" />
       <YAxis dataKey="value" />
       <Tooltip content={<CustomTooltip />} />
-      <Bar dataKey="value" fill="#8884d8" radius={[10, 10, 0, 0]} />
+      <Bar dataKey="value" fill="var(--chart-1)" radius={[10, 10, 0, 0]} />
     </BarChart>
   );
 };

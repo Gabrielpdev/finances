@@ -2,14 +2,17 @@ import * as React from "react";
 import { DropdownMenu } from "radix-ui";
 import { CheckIcon } from "@radix-ui/react-icons";
 import { TbTriangleInvertedFilled, TbX } from "react-icons/tb";
+import { Loading } from "@/components/loading";
+import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import type { VariantProps } from "class-variance-authority";
 
 export type IOptions = {
   value: string;
   label: string;
 };
 
-interface SelectProps {
+interface SelectProps extends VariantProps<typeof buttonVariants> {
   selected: string;
   onSelect: (value: string) => void;
   options: string[];
@@ -31,6 +34,8 @@ const Select = ({
   isLoading,
   defaultValue,
   className,
+  variant = "outline",
+  size = "lg",
 }: SelectProps) => {
   function handleSelect(value: string) {
     const isAlreadySelected = selected === value;
@@ -59,19 +64,23 @@ const Select = ({
           disabled={isLoading || disabled}
           defaultValue={defaultValue}
           className={cn(
-            "w-60 h-9 rounded-md text-primary-foreground bg-white px-2.5 font-normal shadow-[0_1px_2px] shadow-black outline-none  max-sm:w-full",
-            className,
+            buttonVariants({ variant, size, className }),
+            "w-60 max-sm:w-full",
           )}
         >
-          <div className="flex items-center w-full justify-between text-sm">
-            <span className="truncate">{selected || title}</span>
-            <TbTriangleInvertedFilled size={13} className="shrink-0" />
-          </div>
+          {isLoading ? (
+            <Loading />
+          ) : (
+            <div className="flex w-full items-center justify-between text-sm">
+              <span className="truncate">{selected || title}</span>
+              <TbTriangleInvertedFilled size={13} className="shrink-0" />
+            </div>
+          )}
         </DropdownMenu.Trigger>
 
         <DropdownMenu.Portal>
           <DropdownMenu.Content
-            className="min-w-[220px] rounded-md bg-white p-[5px] shadow-[0px_10px_38px_-10px_rgba(22,_23,_24,_0.35),_0px_10px_20px_-15px_rgba(22,_23,_24,_0.2)] will-change-[opacity,transform] data-[side=bottom]:animate-slideUpAndFade data-[side=left]:animate-slideRightAndFade data-[side=right]:animate-slideLeftAndFade data-[side=top]:animate-slideDownAndFade"
+            className="min-w-[220px] rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-lg will-change-[opacity,transform] data-[side=bottom]:animate-slideUpAndFade data-[side=left]:animate-slideRightAndFade data-[side=right]:animate-slideLeftAndFade data-[side=top]:animate-slideDownAndFade"
             sideOffset={5}
           >
             {options.map((option) => {
@@ -80,7 +89,7 @@ const Select = ({
               return (
                 <div
                   key={option}
-                  className="group relative flex h-[25px] select-none items-center rounded-[3px] pl-[25px] pr-[5px] text-[13px] leading-none text-violet11 outline-none data-[disabled]:pointer-events-none data-[highlighted]:bg-violet9 data-[disabled]:text-mauve8 data-[highlighted]:text-violet1"
+                  className="group relative flex h-8 select-none items-center rounded-sm pl-7 pr-1 text-sm leading-none text-popover-foreground outline-none data-[disabled]:pointer-events-none data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground"
                 >
                   <DropdownMenu.CheckboxItem
                     checked={isSelected}

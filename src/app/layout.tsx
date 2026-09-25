@@ -39,9 +39,9 @@ export default async function RootLayout({
   const result = await checkUserToken();
 
   return (
-    <html lang="en" className={cn("font-sans", inter.variable)}>
+    <html lang="pt-BR" className={cn("font-sans", inter.variable)}>
       <body className={inter.className}>
-        <div className="bg-neutral-200 min-h-screen h-full pb-4 overflow-hidden">
+        <div className="min-h-screen h-full overflow-hidden bg-background pb-4 text-foreground">
           <FirebaseProvider>
             {result.valid ? (
               <TransactionsProvider>

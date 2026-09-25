@@ -75,20 +75,24 @@ export default function Home() {
   };
 
   if (loading) {
-    <div className="w-full h-60 flex items-center justify-center">
-      <Loading />
-    </div>;
+    return (
+      <div className="flex h-60 w-full items-center justify-center">
+        <Loading />
+      </div>
+    );
   }
 
   return (
-    <div className="flex  flex-col p-8 gap-4 w-full mt-5 max-sm:p-2">
-      <h2 className="text-5xl font-semibold">Visão Geral</h2>
+    <div className="flex w-full flex-col gap-4 p-8 container m-auto max-sm:p-2">
+      <h2 className="text-4xl font-semibold tracking-tight text-foreground">
+        Visão Geral
+      </h2>
 
       <div className="flex items-end gap-4 w-full mt-5 m-auto max-sm:flex-col">
         <DatePickerWithRange />
 
         <Button
-          className="flex items-center justify-center bg-green-700 hover:bg-green-800 text-white max-sm:w-full"
+          className="flex items-center justify-center max-sm:w-full"
           onClick={searchWithFilters}
         >
           Buscar
@@ -98,7 +102,7 @@ export default function Home() {
 
       <h4 className="text-2xl font-semibold">
         Gastos futuros:
-        <span className="text-lg font-semibold text-gray-800">
+        <span className="text-lg font-semibold text-muted-foreground">
           {` `}
           {futureExpensesTotal.toLocaleString("pt-BR", {
             style: "currency",
@@ -106,7 +110,7 @@ export default function Home() {
           })}
         </span>
       </h4>
-      <div className="flex items-center flex-col justify-center gap-4 w-full bg-white rounded-lg shadow-md">
+      <div className="flex w-full flex-col items-center justify-center gap-4 rounded-xl border border-border/70 bg-card p-3 shadow-sm">
         {!!futureTransactions.length ? (
           futureTransactions.map((item) => (
             <DataTable item={item} key={item.id} />
@@ -119,7 +123,7 @@ export default function Home() {
       </div>
 
       <h4 className="text-2xl font-semibold">Gastos no mês</h4>
-      <div className="flex items-center flex-col justify-center gap-4 w-full bg-white rounded-lg shadow-md">
+      <div className="flex w-full flex-col items-center justify-center gap-4 rounded-xl border border-border/70 bg-card p-3 shadow-sm">
         <div className="flex items-center justify-center p-6 gap-4 w-full max-sm:flex-wrap max-sm:p-1">
           <SimpleBarChart
             data={chartCategoriesData}

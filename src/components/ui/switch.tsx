@@ -1,6 +1,6 @@
 import React from "react";
 import { SwitchProps, Root, SwitchThumb } from "@radix-ui/react-switch";
-import { cn } from "@/lib/utils/cn";
+import { cn } from "@/lib/utils";
 
 interface ISwitch extends SwitchProps {
   label?: string;

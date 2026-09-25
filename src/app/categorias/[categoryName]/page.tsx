@@ -45,7 +45,7 @@ export default function CategoryName() {
   );
 
   return (
-    <div className="flex max-w-6xl w-full flex-col m-auto">
+    <div className="flex container mx-auto mt-4 w-full flex-col  rounded-xl border border-border/70 bg-card p-3 shadow-sm">
       {loading ? (
         <div className="w-full h-60 flex items-center justify-center">
           <Loading />

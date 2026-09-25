@@ -8,11 +8,11 @@ interface TableValueProps {
 
 export const getColor = (item: IFormattedData, type: string) => {
   if (type === "Valor") {
-    if (Number(item.amount) < 0) return "text-red-500";
+    if (Number(item.amount) < 0) return "text-expense";
 
-    return "text-green-600";
+    return "text-income";
   }
-  return "text-blue-950";
+  return "text-foreground";
 };
 
 export const TableValue = ({ item, type }: TableValueProps) => {
@@ -22,7 +22,7 @@ export const TableValue = ({ item, type }: TableValueProps) => {
   )} max-sm:px-2 max-sm:justify-start max-sm:border-none`;
 
   if (type === "Estabelecimento") {
-    const establishmentClassName = `w-full  h-full flex items-center capitalize border-r-2 text-blue-950 
+    const establishmentClassName = `w-full h-full flex items-center capitalize border-r text-foreground
     max-sm:px-2 max-sm:w-full max-sm:border-none max-sm:text-left max-sm:font-medium`;
 
     // Procurar pelo alias na lista da categoria

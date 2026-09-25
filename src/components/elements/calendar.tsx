@@ -20,11 +20,7 @@ export function DatePickerWithRange() {
       <FieldLabel htmlFor="date-picker-range">Selecionar Data</FieldLabel>
       <Popover>
         <PopoverTrigger asChild>
-          <Button
-            variant="default"
-            id="date-picker-range"
-            className="bg-white justify-start px-2.5 font-normal shadow-[0_1px_2px] shadow-black outline-none"
-          >
+          <Button variant="outline" id="date-picker-range">
             <CalendarIcon />
             {filterDate?.from ? (
               filterDate.to ? (

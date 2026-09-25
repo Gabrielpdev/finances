@@ -2,9 +2,7 @@ import { IData, IFormattedData } from "@/types/data";
 import { PiXCircleLight } from "react-icons/pi";
 import { PiPencilSimple } from "react-icons/pi";
 import { header } from "@/constants/tableHeader";
-import { cn } from "@/lib/utils/cn";
-import { useContext, useState } from "react";
-import { TransactionsContext } from "@/providers/transactions";
+import { cn } from "@/lib/utils";
 import { TableValue } from "@/components/elements/tableValue";
 
 export interface DataTableProps {
@@ -20,14 +18,6 @@ export function List({
   setSelectedItemToExclude,
   onEdit,
 }: DataTableProps) {
-  const [changes, setChanges] = useState<{
-    label: string;
-    value: string | undefined;
-  }>({
-    label: item.category.name,
-    value: item.category.id,
-  });
-
   const onSelectItemToExclude = (itemId: string) => {
     if (!selectedItemToExclude || !setSelectedItemToExclude) return;
 
@@ -66,11 +56,7 @@ export function List({
               "max-sm:col-[span_1]",
           )}
         >
-          <TableValue
-            item={item}
-            type={headerItem as keyof IData}
-            changes={changes}
-          />
+          <TableValue item={item} type={headerItem as keyof IData} />
         </div>
       ))}
       {onEdit && (

@@ -9,10 +9,8 @@ export interface DataTableProps {
 
 export function HeaderTable() {
   return (
-    <div className="border py-3 w-full bg-neutral-200 max-sm:hidden">
-      <div
-        className={`grid grid-cols-[repeat(41,_minmax(0,_1fr))] text-center`}
-      >
+    <div className="w-full border-y border-border bg-muted rounded-xl py-3 px-5 pr-2 max-sm:hidden">
+      <div className="grid grid-cols-41 text-center ">
         {header.map((item) => (
           <span
             key={item}
@@ -20,7 +18,7 @@ export function HeaderTable() {
               item === "Estabelecimento"
                 ? "col-[span_21]"
                 : "col-[span_6] justify-center"
-            } items-center border-r-2 max-sm:border text-zinc-400`}
+            } items-center border-r border-border text-muted-foreground`}
           >
             {item}
           </span>

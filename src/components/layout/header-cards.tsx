@@ -3,11 +3,7 @@ import { useContext } from "react";
 import Card from "../elements/cards";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { CurrencyContext } from "@/providers/currency";
-import {
-  PiArrowArcLeft,
-  PiArrowBendDownLeft,
-  PiArrowCircleLeft,
-} from "react-icons/pi";
+import { PiArrowArcLeft, PiArrowCircleLeft } from "react-icons/pi";
 
 export default function HeaderDescription() {
   const path = usePathname();
@@ -22,7 +18,7 @@ export default function HeaderDescription() {
 
   if (path === "/home")
     return (
-      <div className="flex max-w-6xl w-full gap-11 mt-16 overflow-x-auto min-h-max p-3 max-sm:mt-2 max-sm:gap-4">
+      <div className="container flex justify-between m-auto w-full gap-11 mt-16 overflow-x-auto min-h-max p-3 max-sm:mt-2 max-sm:gap-4">
         <Card title="Entradas" value={value.in} type="in" />
         <Card title="Saidas" value={value.out} type="out" />
         <Card
@@ -38,9 +34,9 @@ export default function HeaderDescription() {
 
   if (path === "/categorias")
     return (
-      <h2 className="flex items-center w-full justify-between gap-2 text-4xl mb-5 text-white font-extrabold capitalize max-sm:text-2xl max-sm:mb-2">
+      <h2 className="container mx-auto mb-3 flex items-center justify-between gap-2 text-4xl text-primary-foreground font-extrabold capitalize max-sm:text-2xl max-sm:mb-2">
         <div className="flex items-center gap-2">
-          <button onClick={back}>
+          <button onClick={back} aria-label="Voltar">
             <PiArrowCircleLeft />
           </button>
           {path.replace("/", "")}
@@ -50,8 +46,8 @@ export default function HeaderDescription() {
 
   if (path.includes(params.categoryName as string))
     return (
-      <h2 className="flex items-center justify-center gap-2 text-4xl mb-5 text-white font-extrabold capitalize max-sm:text-2xl">
-        <button onClick={back}>
+      <h2 className="flex items-center justify-center gap-2 text-4xl mb-5 text-primary-foreground font-extrabold capitalize max-sm:text-2xl">
+        <button onClick={back} aria-label="Voltar">
           <PiArrowCircleLeft />
         </button>
         {params.categoryName}

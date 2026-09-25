@@ -19,7 +19,7 @@ export default function ListItem({ category, className }: CategoryProps) {
   return (
     <button
       onClick={() => handleSelectCategory(category.name)}
-      className={`grid grid-cols-10 text-center p-5 rounded-md w-full ${className}`}
+      className={`grid grid-cols-10 text-center p-5 rounded-md w-full cursor-pointer ${className}`}
       style={{ backgroundColor: category?.color || "#FFFFFF" }}
     >
       <span

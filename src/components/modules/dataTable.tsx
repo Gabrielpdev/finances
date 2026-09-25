@@ -2,7 +2,7 @@ import { IData, IFormattedData } from "@/types/data";
 import { TableValue } from "../elements/tableValue";
 import { PiXCircleLight } from "react-icons/pi";
 import { header } from "@/constants/tableHeader";
-import { cn } from "@/lib/utils/cn";
+import { cn } from "@/lib/utils";
 
 export interface DataTableProps {
   item: IFormattedData;
@@ -42,14 +42,14 @@ export function DataTable({
   return (
     <div
       className={cn(
-        "grid grid-cols-[repeat(41,_minmax(0,_1fr))] text-center bg-white p-5 pr-2 rounded-md w-full",
-        "max-sm:gap-4 max-sm:grid-cols-[repeat(2,_minmax(0,_1fr))] max-sm:flex-wrap max-sm:justify-center max-sm:relative max-sm:p-2 max-sm:py-2 max-sm:pl-2",
+        "grid grid-cols-41 text-center bg-card p-5 pr-2 rounded-xl border border-border/70 shadow-xs w-full",
+        "max-sm:gap-4 max-sm:grid-cols-2 max-sm:flex-wrap max-sm:justify-center max-sm:relative max-sm:p-2 max-sm:py-2 max-sm:pl-2",
         selectedItemToExclude?.includes(item.id) && "opacity-60",
         shouldWarnXpItem &&
           item.description
             ?.toLocaleLowerCase()
             .includes("conta banco santander") &&
-          "bg-yellow-200",
+          "border-warning/40 bg-warning/20",
       )}
       onDoubleClick={handleDoubleClick}
     >
@@ -71,7 +71,8 @@ export function DataTable({
       {!!setSelectedItemToExclude && (
         <button
           onClick={() => onSelectItemToExclude(item.id)}
-          className={`flex items-center justify-center flex-col col-span-2  w-full h-[34px] max-sm:w-[34px] max-sm:px-2 max-sm:absolute max-sm:top-1/2 max-sm:-translate-y-1/2 max-sm:right-3 max-sm:text-2xl`}
+          aria-label={`Excluir ${item.description || "transação"}`}
+          className="flex h-8.5 w-full flex-col items-center justify-center col-span-2 max-sm:absolute max-sm:right-3 max-sm:top-1/2 max-sm:w-8.5 max-sm:-translate-y-1/2 max-sm:px-2 max-sm:text-2xl"
         >
           <PiXCircleLight />
         </button>

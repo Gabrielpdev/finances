@@ -12,6 +12,7 @@ import {
   PiPencilSimple,
 } from "react-icons/pi";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 interface CategoryListProps {
   selectedCategory: ICategory | undefined;
@@ -167,22 +168,22 @@ export default function CategoryList({
     <div className={`flex flex-col w-full gap-2`}>
       <div className={`grid grid-cols-10 w-full `}>
         <span
-          className={`w-full flex  capitalize border-r-2 text-blue-950 col-span-8 max-sm:col-span-7`}
+          className={`w-full flex capitalize text-blue-950 col-span-8 max-sm:col-span-7`}
         >
           Lista:
         </span>
 
         {!addField && (
-          <button
+          <Button
+            className="flex items-center justify-center gap-2 py-2 col-span-2"
             onClick={() => {
               setAddField(true);
               setEditingListItem(null);
             }}
-            className="flex items-center justify-center gap-2 text-white bg-green-700 rounded-md py-2 font-extrabold col-span-2 max-sm:col-span-3 hover:bg-green-800"
           >
             Adicionar
             <PiPlusCircleDuotone className="max-sm:text-2xl" />
-          </button>
+          </Button>
         )}
       </div>
 
@@ -208,24 +209,22 @@ export default function CategoryList({
           />
 
           <div className="flex gap-2">
-            <button
-              type="submit"
-              className="text-white bg-green-700 rounded-md px-4 py-2 font-extrabold hover:bg-green-800 flex-1"
-            >
+            <Button type="submit" className="font-extrabold flex-1">
               {editingListItem ? "Atualizar" : "Adicionar"}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="destructive"
               onClick={handleCancelEdit}
-              className="text-white bg-gray-500 rounded-md px-4 py-2 font-extrabold hover:bg-gray-600 flex-1"
+              className="font-extrabold flex-1"
             >
               Cancelar
-            </button>
+            </Button>
           </div>
         </form>
       )}
 
-      <div className="grid gap-2 max-h-[calc(100vh-370px)] overflow-auto pb-4 pr-4">
+      <div className="grid gap-2 max-h-[calc(100vh-370px)] overflow-auto">
         {selectedCategory?.list.map((item) => (
           <div
             key={item.key}
@@ -246,25 +245,25 @@ export default function CategoryList({
               </div>
             </div>
 
-            <button
+            <Button
               onClick={() => handleEditValueOnList(item.key)}
-              className="flex items-center justify-center gap-2 text-white bg-blue-950 rounded-md py-2 col-span-1  hover:bg-blue-900"
+              className="bg-blue-950 hover:bg-blue-900"
             >
               <span className="font-extrabold text-sm max-sm:hidden">
                 Editar
               </span>
               <PiPencilSimple className="max-sm:text-xl" />
-            </button>
+            </Button>
 
-            <button
+            <Button
               onClick={() => handleDeleteValueOnList(item.key)}
-              className="flex items-center justify-center gap-2 text-white bg-red-700 rounded-md py-2 col-span-1  hover:bg-red-800"
+              variant="destructive"
             >
               <span className="font-extrabold text-sm max-sm:hidden">
                 Deletar
               </span>
               <PiTrashSimpleDuotone className="max-sm:text-xl" />
-            </button>
+            </Button>
           </div>
         ))}
       </div>
