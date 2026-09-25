@@ -47,7 +47,7 @@ export default function Home() {
   const futureExpensesTotal = useMemo(
     () =>
       futureTransactions
-        .filter((item) => item.amount < 0)
+        ?.filter((item) => item.amount < 0)
         .reduce((total, item) => total + item.amount, 0),
     [futureTransactions],
   );

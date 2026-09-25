@@ -11,6 +11,19 @@ export interface IData {
   timestamp: number;
   categoryId: string;
 }
+export interface IRecurringData {
+  id: string;
+  day: number;
+  description: string;
+  amount: number;
+  categoryId: string;
+  holder: string;
+  type: string;
+  installment: string;
+}
+export interface IFormattedRecurringData extends IRecurringData {
+  category: ICategory;
+}
 export interface IFormattedData extends IData {
   category: ICategory;
 }
@@ -59,6 +72,7 @@ export interface ITransactionsContext {
   categories: ICategory[];
   setCategories: (categories: ICategory[]) => void;
   futureTransactions: IFormattedData[];
+  recurringTransactions: IFormattedRecurringData[];
   transactions: IFormattedData[];
   setTransactions: (transactions: IFormattedData[]) => void;
   filterDate: DateRange | undefined;

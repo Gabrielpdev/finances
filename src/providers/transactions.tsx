@@ -6,6 +6,7 @@ import {
   IData,
   ICategory,
   IFormattedData,
+  IFormattedRecurringData,
 } from "@/types/data";
 import { listCategories } from "@/app/actions/categories/list";
 import { listDatas } from "@/app/actions/data/list";
@@ -16,6 +17,7 @@ import {
 import { DateRange } from "react-day-picker";
 import { transactionsWithCategories } from "@/helpers/transactionsWithCategories";
 import { checkUserToken } from "@/app/actions/checkUserToken";
+import { listRecurring } from "@/app/actions/recurring/list";
 
 export const TransactionsContext = createContext({} as ITransactionsContext);
 
@@ -30,6 +32,9 @@ export default function TransactionsProvider({
 
   const [futureTransactions, setFutureTransactions] = useState<
     IFormattedData[]
+  >([]);
+  const [recurringTransactions, setRecurringTransactions] = useState<
+    IFormattedRecurringData[]
   >([]);
   const [filterDate, setFilterDate] = useState<DateRange | undefined>({
     from: startOfCurrentMonth,
@@ -69,6 +74,14 @@ export default function TransactionsProvider({
     const savedCategories = await listCategories();
 
     setCategories(savedCategories);
+    setRecurringTransactions(
+      recurringTransactions.map((item) => ({
+        ...item,
+        category:
+          savedCategories.find((category) => category.id === item.categoryId) ||
+          item.category,
+      })),
+    );
     putCategoriesOnTransactions(transactions, savedCategories);
     setLoading(false);
   };
@@ -122,7 +135,33 @@ export default function TransactionsProvider({
       end: endOfNextMonth.getTime(),
     });
 
-    setFutureTransactions(savedData);
+    const savedRecurring = await listRecurring(categories);
+    const lastDayOfNextMonth = new Date(
+      nextMonth.getFullYear(),
+      nextMonth.getMonth() + 1,
+      0,
+    ).getDate();
+    const projectedRecurring = savedRecurring.map((item) => {
+      const day = Math.min(item.day, lastDayOfNextMonth);
+      const month = now.getDate() > day ? nextMonth.getMonth() : now.getMonth();
+
+      const projectedDate = new Date(nextMonth.getFullYear(), month, day);
+      const date = projectedDate.toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+
+      return {
+        ...item,
+        id: `recurring-${item.id}-${nextMonth.getFullYear()}-${nextMonth.getMonth() + 1}`,
+        date,
+        timestamp: projectedDate.getTime(),
+      };
+    });
+
+    setRecurringTransactions(savedRecurring);
+    setFutureTransactions([...savedData, ...projectedRecurring]);
     setLoading(false);
   };
 
@@ -143,9 +182,11 @@ export default function TransactionsProvider({
       start: startOfCurrentMonth.getTime(),
       end: endOfCurrentMonth.getTime(),
     });
+    const savedRecurring = await listRecurring(savedCategories);
 
     setCategories(savedCategories);
     setTransactions(savedData);
+    setRecurringTransactions(savedRecurring);
     setLoading(false);
   };
 
@@ -170,6 +211,7 @@ export default function TransactionsProvider({
         updateLocalData,
         getFutureTransactions,
         futureTransactions,
+        recurringTransactions,
         updateOneTransaction,
         loading,
       }}

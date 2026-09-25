@@ -15,6 +15,8 @@ import { Label } from "@/components/ui/label";
 import { IData, ICategory, IFormattedData } from "@/types/data";
 import { updateTransaction } from "@/app/actions/data/update";
 import { deleteTransaction } from "@/app/actions/data/delete";
+import { createRecurring } from "@/app/actions/recurring/create";
+import { deleteRecurring } from "@/app/actions/recurring/delete";
 import { TransactionsContext } from "@/providers/transactions";
 import { toast } from "react-toastify";
 
@@ -33,10 +35,12 @@ export function EditTransactionModal({
   onClose,
   onDeleted,
 }: EditTransactionModalProps) {
-  const { updateOneTransaction } = useContext(TransactionsContext);
+  const { updateOneTransaction, recurringTransactions } =
+    useContext(TransactionsContext);
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [categoryId, setCategoryId] = useState("");
+  const [isRecurring, setIsRecurring] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -46,6 +50,7 @@ export function EditTransactionModal({
       setDescription("");
       setAmount("");
       setCategoryId("");
+      setIsRecurring(false);
       setConfirmingDelete(false);
       return;
     }
@@ -53,6 +58,9 @@ export function EditTransactionModal({
     setDescription(transaction.description);
     setAmount(String(transaction.amount));
     setCategoryId(transaction.categoryId);
+    setIsRecurring(
+      recurringTransactions.some((item) => item.id === transaction.id),
+    );
     setConfirmingDelete(false);
   }, [transaction, isOpen]);
 
@@ -81,6 +89,21 @@ export function EditTransactionModal({
 
     try {
       await updateTransaction({ data: updatedTransaction });
+      if (isRecurring) {
+        const [day] = transaction.date.split("/");
+        await createRecurring({
+          id: transaction.id,
+          day: Number(day),
+          description: updatedTransaction.description,
+          amount: updatedTransaction.amount,
+          categoryId: updatedTransaction.categoryId,
+          holder: updatedTransaction.holder,
+          type: updatedTransaction.type,
+          installment: updatedTransaction.installment,
+        });
+      } else {
+        await deleteRecurring({ id: transaction.id });
+      }
       updateOneTransaction(updatedTransaction);
       toast.success("Transação atualizada com sucesso!");
       onClose();
@@ -98,6 +121,7 @@ export function EditTransactionModal({
     setIsDeleting(true);
     try {
       await deleteTransaction({ id: transaction.id });
+      await deleteRecurring({ id: transaction.id });
       await onDeleted();
       toast.success("Item excluído com sucesso!");
       onClose();
@@ -193,6 +217,15 @@ export function EditTransactionModal({
                   </p>
                 )}
               </div>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={isRecurring}
+                  onChange={(event) => setIsRecurring(event.target.checked)}
+                  disabled={isSaving}
+                />
+                Transação recorrente
+              </label>
 
               <DialogFooter>
                 <Button
