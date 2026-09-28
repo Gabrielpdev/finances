@@ -224,7 +224,7 @@ export default function CategoryList({
         </form>
       )}
 
-      <div className="grid gap-2 max-h-[calc(100vh-370px)] overflow-auto">
+      <div className="scrollbar-minimal grid gap-2 max-h-[calc(100vh-370px)] overflow-auto rounded-xl border">
         {selectedCategory?.list.map((item) => (
           <div
             key={item.key}

@@ -79,6 +79,7 @@ export interface ITransactionsContext {
   setFilterDate: React.Dispatch<React.SetStateAction<DateRange | undefined>>;
   refreshTransactions: (startDate?: number, endDate?: number) => Promise<void>;
   refreshCategories: () => Promise<void>;
+  refreshRecurringTransactions: () => Promise<void>;
   updateLocalData: ({
     savedData,
     savedCategories,

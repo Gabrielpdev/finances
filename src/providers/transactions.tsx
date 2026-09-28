@@ -86,6 +86,11 @@ export default function TransactionsProvider({
     setLoading(false);
   };
 
+  const refreshRecurringTransactions = async () => {
+    const savedRecurring = await listRecurring(categories);
+    setRecurringTransactions(savedRecurring);
+  };
+
   const updateLocalData = ({
     savedData,
     savedCategories,
@@ -208,6 +213,7 @@ export default function TransactionsProvider({
         setCategories,
         refreshTransactions,
         refreshCategories,
+        refreshRecurringTransactions,
         updateLocalData,
         getFutureTransactions,
         futureTransactions,

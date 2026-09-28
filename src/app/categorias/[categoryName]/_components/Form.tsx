@@ -116,11 +116,13 @@ export default function CategoryForm({
           >
             Cor:
           </label>
-          <ColorPicker
-            value={color}
-            onChange={setColor}
-            triggerClassName="bg-white h-10"
-          />
+          <div className="flex w-full rounded-md border border-input bg-background text-sm text-foreground shadow-xs ">
+            <ColorPicker
+              value={color}
+              onChange={setColor}
+              triggerClassName="w-full h-10"
+            />
+          </div>
         </div>
 
         <Input

@@ -6,6 +6,7 @@ import { CreateCategoryModal } from "./components/CreateCategoryModal";
 import { TransactionsContext } from "@/providers/transactions";
 import { Button } from "@/components/ui/button";
 import { Loading } from "@/components/loading";
+import RecurringTransactions from "./components/RecurringTransactions";
 
 export default function Category() {
   const { categories, loading } = useContext(TransactionsContext);
@@ -55,6 +56,8 @@ export default function Category() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />
+
+      <RecurringTransactions />
     </div>
   );
 }

@@ -11,7 +11,7 @@ export default function Card({ title, value, type }: CardProp) {
   return (
     <div
       className={cn(
-        "h-36 w-full flex rounded-xl border shadow-sm max-sm:h-28 bg-background",
+        "h-36 w-full min-w-52 flex rounded-xl border shadow-sm max-sm:h-28 bg-background",
         type === "in" ? "border-income/80" : "border-expense/80",
       )}
     >
